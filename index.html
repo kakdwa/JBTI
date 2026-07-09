@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>JBTI · 职业离谱指数检测</title>
+<meta name="description" content="JB是Job，别想歪。3分钟测出你的求职方案有多离谱。16种求职人格，2种隐藏人格。">
+<meta property="og:title" content="JBTI · 你的求职方案有多JB？">
+<meta property="og:description" content="JB是Job，别想歪。3分钟，16种求职人格。经检测，我已离谱2.8公里。">
+<meta property="og:type" content="website">
+<style>
+/* ============ TOKENS · 疯批试卷 ============ */
+:root{
+  --paper:#FBF5E6;          /* 卷面 */
+  --paper-2:#F4EBD3;
+  --ink:#26221B;            /* 铅字 */
+  --red:#E5382E;            /* 红笔 */
+  --blue:#2F6FE4;           /* 蓝笔 */
+  --green:#2FA84F;          /* 对勾绿 */
+  --hl:#FFE94A;             /* 荧光笔 */
+  --line:rgba(38,34,27,.16);
+  --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif;
+  --safe-b:env(safe-area-inset-bottom,0px);
+  /* 手绘歪框 */
+  --wonky:255px 18px 230px 18px/18px 230px 18px 255px;
+  --wonky2:18px 240px 18px 250px/245px 18px 235px 18px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:16px}
+body{
+  font-family:var(--sans);color:var(--ink);background:var(--paper);
+  line-height:1.6;overflow-x:hidden;
+  /* 作业本格纹 + 页边距红线 */
+  background-image:
+    linear-gradient(var(--line) 1px,transparent 1px),
+    linear-gradient(90deg,var(--line) 1px,transparent 1px),
+    linear-gradient(90deg,transparent 30px,rgba(229,56,46,.35) 30px,rgba(229,56,46,.35) 32px,transparent 32px);
+  background-size:26px 26px,26px 26px,100% 100%;
+}
+.app{max-width:480px;margin:0 auto;min-height:100dvh;position:relative}
+.screen{display:none;min-height:100dvh;padding:16px 22px calc(40px + var(--safe-b));flex-direction:column;position:relative}
+.screen.on{display:flex}
+.grow{flex:1}
+.mono{font-family:var(--mono)}
+.dashline{border:none;border-top:2px dashed var(--line);margin:16px 0}
+
+/* ============ 弹幕梗条 ============ */
+.ticker{
+  overflow:hidden;white-space:nowrap;border-top:2px solid var(--ink);border-bottom:2px solid var(--ink);
+  background:var(--hl);margin:0 -22px 14px;padding:6px 0;transform:rotate(-.6deg)
+}
+.ticker-track{display:inline-block;animation:tick 38s linear infinite;font-size:13px;font-weight:800;letter-spacing:.02em}
+.ticker-track span{margin:0 26px}
+@keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ============ 卷头 ============ */
+.masthead{
+  display:flex;justify-content:space-between;align-items:center;
+  border-bottom:2.5px solid var(--ink);padding-bottom:8px;margin-bottom:4px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--ink)
+}
+.masthead b{font-size:13px;letter-spacing:.14em;background:var(--ink);color:var(--paper);padding:2px 7px;transform:rotate(-1.5deg);display:inline-block}
+
+/* ============ LANDING ============ */
+.landing-hero{padding-top:4vh;position:relative}
+.jbti-logo{font-family:var(--mono);font-weight:800;font-size:clamp(62px,18vw,86px);letter-spacing:-.02em;line-height:.95;display:flex}
+.jbti-logo span{display:inline-block;animation:jump 2.6s ease-in-out infinite}
+.jbti-logo span:nth-child(1){transform:rotate(-7deg)}
+.jbti-logo span:nth-child(2){color:var(--red);transform:rotate(6deg) translateY(-4px);animation-delay:.15s;text-decoration:underline wavy var(--red) 4px;text-underline-offset:8px}
+.jbti-logo span:nth-child(3){transform:rotate(-4deg);animation-delay:.3s}
+.jbti-logo span:nth-child(4){transform:rotate(8deg) translateY(3px);animation-delay:.45s}
+@keyframes jump{0%,100%{translate:0 0}50%{translate:0 -6px}}
+.landing-sub{
+  display:inline-block;margin-top:16px;font-size:19px;font-weight:800;
+  border:2.5px solid var(--ink);padding:7px 13px;background:#fff;
+  border-radius:var(--wonky);box-shadow:4px 5px 0 var(--ink);transform:rotate(-1.6deg)
+}
+.landing-slogan{margin-top:24px;font-size:16.5px;font-weight:700}
+.landing-slogan em{font-style:normal;color:var(--red);font-weight:900;font-size:1.25em;display:inline-block;transform:rotate(-3deg)}
+.landing-meta{margin-top:16px;display:flex;gap:9px;flex-wrap:wrap}
+.chip{
+  font-family:var(--mono);font-size:11.5px;border:2px solid var(--ink);
+  border-radius:var(--wonky2);padding:6px 12px;background:#fff;font-weight:700;display:inline-block
+}
+.landing-meta .chip:nth-child(1){transform:rotate(-2deg)}
+.landing-meta .chip:nth-child(2){transform:rotate(1.4deg);background:var(--hl)}
+.landing-meta .chip:nth-child(3){transform:rotate(-1deg)}
+.fineprint{margin-top:20px;font-size:12.5px;color:var(--ink);opacity:.75;line-height:1.9}
+.fineprint b{background:linear-gradient(transparent 55%,var(--hl) 55%,var(--hl) 95%,transparent 95%)}
+/* 圆形贴纸 */
+.sticker{
+  position:absolute;right:2px;top:2px;width:88px;height:88px;border-radius:50%;
+  background:var(--red);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-weight:900;font-size:15px;line-height:1.25;transform:rotate(12deg);
+  box-shadow:3px 4px 0 rgba(38,34,27,.3);animation:breathe 2.4s ease-in-out infinite
+}
+.sticker small{font-size:9.5px;font-family:var(--mono);font-weight:700;opacity:.9}
+@keyframes breathe{0%,100%{transform:rotate(12deg) scale(1)}50%{transform:rotate(9deg) scale(1.06)}}
+
+/* ============ CTA ============ */
+.cta{
+  display:block;width:100%;border:3px solid var(--ink);background:var(--ink);color:var(--paper);
+  font-family:inherit;font-size:18px;font-weight:900;letter-spacing:.05em;
+  padding:17px 0;border-radius:var(--wonky);box-shadow:5px 6px 0 var(--red);
+  cursor:pointer;transition:transform .08s;user-select:none;text-align:center;transform:rotate(-.5deg)
+}
+.cta:active{transform:translate(4px,4px) rotate(-.5deg);box-shadow:1px 1px 0 var(--red)}
+.cta.ghost{background:#fff;color:var(--ink);box-shadow:4px 4px 0 rgba(38,34,27,.25);transform:rotate(.6deg)}
+.cta.blue{background:var(--blue);border-color:var(--ink);box-shadow:5px 6px 0 rgba(38,34,27,.3)}
+.cta-stack{display:flex;flex-direction:column;gap:13px;margin-top:26px}
+
+/* ============ QUESTION ============ */
+.q-progress{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:12px;margin-bottom:4px}
+.q-progress b{font-size:16px;color:var(--red)}
+.q-bing{font-size:13px;letter-spacing:3px;margin-bottom:20px;filter:saturate(1.2)}
+.q-bar{display:none}
+.q-title{font-size:21px;font-weight:800;line-height:1.55;margin-bottom:22px}
+.q-title .qno{
+  font-family:var(--mono);color:#fff;background:var(--red);font-size:13px;display:inline-block;
+  margin-bottom:10px;letter-spacing:.1em;padding:3px 9px;transform:rotate(-2deg);border-radius:6px 14px 6px 14px
+}
+.opt{
+  display:flex;align-items:flex-start;gap:11px;width:100%;text-align:left;
+  border:2.5px solid var(--ink);background:#fff;border-radius:var(--wonky);
+  padding:15px;margin-bottom:13px;font-family:inherit;font-size:15.5px;
+  font-weight:600;line-height:1.55;color:var(--ink);cursor:pointer;
+  box-shadow:3px 4px 0 rgba(38,34,27,.2);transition:transform .07s
+}
+.opt:nth-child(1){transform:rotate(-.7deg)}
+.opt:nth-child(2){transform:rotate(.5deg)}
+.opt:nth-child(3){transform:rotate(-.4deg)}
+.opt:nth-child(4){transform:rotate(.8deg)}
+.opt:active,.opt.picked{background:var(--hl);transform:translate(2px,3px) scale(.99)}
+.opt.picked{box-shadow:0 0 0 3px var(--red) inset,1px 1px 0 rgba(38,34,27,.2)}
+.opt .k{
+  font-family:var(--mono);font-weight:800;font-size:13px;flex:none;
+  width:25px;height:25px;border:2px solid var(--ink);border-radius:50% 40% 55% 45%;
+  display:flex;align-items:center;justify-content:center;margin-top:1px;background:var(--paper)
+}
+.q-note{
+  margin-top:8px;padding:12px 13px;border:2px dashed var(--blue);border-radius:var(--wonky2);
+  background:#fff;font-size:12.5px;line-height:1.7;color:var(--ink);transform:rotate(-.5deg);position:relative
+}
+.q-note::before{content:'📌';position:absolute;top:-11px;left:12px;font-size:16px}
+.q-note b{color:var(--blue)}
+
+/* ============ DREAM ============ */
+.dream-label{font-size:23px;font-weight:900;line-height:1.45;margin:8px 0 6px}
+.dream-hint{font-size:13.5px;opacity:.7;margin-bottom:18px;font-weight:600}
+.dream-input{
+  width:100%;border:3px solid var(--ink);border-radius:var(--wonky);background:#fff;
+  font-family:inherit;font-size:17px;font-weight:700;padding:16px 15px;color:var(--ink);
+  outline:none;box-shadow:3px 4px 0 rgba(38,34,27,.2);transform:rotate(-.4deg)
+}
+.dream-input:focus{border-color:var(--red);background:#FFFDF4}
+.dream-chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.dream-chips .chip{cursor:pointer;font-size:13px;padding:9px 14px}
+.dream-chips .chip:nth-child(odd){transform:rotate(-1.5deg)}
+.dream-chips .chip:nth-child(even){transform:rotate(1.2deg)}
+.dream-chips .chip:active,.dream-chips .chip.picked{background:var(--hl);border-color:var(--red)}
+
+/* ============ LOADING ============ */
+.load-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;text-align:center}
+.whale{font-size:60px;animation:bob 2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-14px) rotate(8deg)}}
+.load-line{margin-top:24px;font-size:14.5px;font-weight:700;min-height:66px;padding:0 14px;line-height:1.8}
+.load-line .joke-a{color:var(--red);font-weight:900}
+.load-dots::after{content:'…'}
+
+/* ============ RESULT · 被批改的卷子 ============ */
+.report{
+  background:#fff;border:3px solid var(--ink);border-radius:var(--wonky);
+  box-shadow:6px 7px 0 rgba(38,34,27,.25);position:relative;transform:rotate(-.4deg)
+}
+/* 胶带 */
+.report::before,.report::after{
+  content:'';position:absolute;width:92px;height:26px;background:rgba(255,233,74,.75);
+  border:1px solid rgba(38,34,27,.15);z-index:3
+}
+.report::before{top:-12px;left:26px;transform:rotate(-5deg)}
+.report::after{top:-12px;right:26px;transform:rotate(6deg)}
+.report-head{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 16px 10px;border-bottom:2.5px solid var(--ink);
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.1em
+}
+.report-head b{font-size:12px}
+.report-body{padding:20px 18px 22px;position:relative}
+/* 红笔批注 */
+.scrawl{
+  position:absolute;font-weight:900;color:var(--red);z-index:4;pointer-events:none;
+  transform:rotate(-10deg);text-shadow:0 0 0 var(--red);font-size:17px;letter-spacing:.05em
+}
+.scrawl.s1{top:6px;left:10px;transform:rotate(-14deg) skewX(-6deg)}
+.scrawl.s2{top:180px;right:6px;transform:rotate(8deg);font-size:15px}
+.scrawl.s3{font-size:14px}
+.diag-eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.15em;margin-bottom:8px;opacity:.75}
+/* 爆炸放射底 */
+.burst{
+  position:relative;padding:10px 0 4px;margin:0 -6px;
+  background:repeating-conic-gradient(from 0deg,rgba(255,233,74,.5) 0deg 9deg,transparent 9deg 18deg);
+  border-radius:50%
+}
+.persona-img,.persona-emoji{
+  width:170px;height:170px;border:3px solid var(--ink);border-radius:22px 45px 25px 48px;
+  margin:4px auto 12px;display:block;object-fit:cover;background:var(--paper-2);
+  box-shadow:4px 5px 0 rgba(38,34,27,.2);transform:rotate(2deg)
+}
+.persona-emoji{display:flex;align-items:center;justify-content:center;font-size:86px}
+.persona-name{
+  font-size:clamp(34px,10vw,42px);font-weight:900;text-align:center;line-height:1.25;letter-spacing:.02em;
+  background:linear-gradient(transparent 58%,var(--hl) 58%,var(--hl) 94%,transparent 94%);
+  display:table;margin:0 auto 6px;transform:rotate(-1deg);padding:0 6px
+}
+.persona-code{font-family:var(--mono);text-align:center;font-size:13px;letter-spacing:.35em;opacity:.65;margin-bottom:12px}
+.persona-tagline{
+  text-align:center;font-size:16.5px;font-weight:700;line-height:1.65;
+  padding:11px 13px;background:var(--paper);border:2.5px dashed var(--red);border-radius:var(--wonky2);
+  margin-bottom:14px;transform:rotate(.5deg)
+}
+.rarity{display:flex;justify-content:center;gap:8px;font-family:var(--mono);font-size:11.5px;opacity:.85;margin-bottom:4px}
+.rarity b{color:var(--red);font-size:13px}
+.verdict{
+  margin-top:16px;padding:16px 15px;border:2.5px solid var(--ink);border-radius:var(--wonky);
+  background:var(--paper);font-size:14.5px;font-weight:600;line-height:1.95;transform:rotate(-.3deg);position:relative
+}
+.verdict .v-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.15em;margin-bottom:8px;color:var(--red);font-weight:800}
+.verdict::after{content:'批阅✓';position:absolute;right:10px;top:-12px;color:var(--green);font-weight:900;font-size:15px;transform:rotate(6deg)}
+
+/* 确诊章 */
+.stamp{
+  position:absolute;top:56px;right:12px;width:98px;height:98px;border:4px double var(--red);
+  border-radius:50%;color:var(--red);display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-weight:900;transform:rotate(12deg) scale(3);opacity:0;pointer-events:none;
+  font-size:21px;letter-spacing:.15em;line-height:1.25;mix-blend-mode:multiply;z-index:5
+}
+.stamp small{font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;font-weight:700}
+.stamp.slam{animation:slam .45s cubic-bezier(.2,1.6,.4,1) forwards,wob 3.2s ease-in-out .6s infinite}
+@keyframes slam{0%{transform:rotate(28deg) scale(3);opacity:0}60%{transform:rotate(12deg) scale(.9);opacity:1}100%{transform:rotate(12deg) scale(1);opacity:.93}}
+@keyframes wob{0%,100%{transform:rotate(12deg)}50%{transform:rotate(9deg)}}
+
+/* 分数区：红笔圈分 */
+.score-block{margin-top:6px;padding:18px 14px 16px;border:2.5px solid var(--ink);border-radius:var(--wonky2);background:var(--paper);transform:rotate(.3deg)}
+.score-row{display:flex;justify-content:space-between;align-items:baseline}
+.score-label{font-size:14px;font-weight:900;letter-spacing:.05em}
+.score-num{font-family:var(--mono);font-weight:800;font-size:38px;color:var(--red);position:relative;padding:2px 10px}
+.score-num small{font-size:15px}
+/* 手绘红圈 */
+.score-num::before{
+  content:'';position:absolute;inset:-8px -6px;border:3px solid var(--red);border-radius:48% 52% 55% 45%/60% 45% 55% 40%;
+  transform:rotate(-4deg);opacity:0;animation:circleIn .5s ease 1.3s forwards
+}
+@keyframes circleIn{to{opacity:.9}}
+.lipu-line{margin-top:8px;font-size:14.5px;font-weight:700}
+.lipu-line b{color:var(--red);font-size:16px}
+.ruler{margin-top:16px;position:relative;height:56px}
+.ruler-track{position:absolute;left:0;right:0;top:26px;height:4px;background:repeating-linear-gradient(90deg,var(--ink) 0 12px,transparent 12px 18px)}
+.ruler-pu{position:absolute;left:-2px;top:-4px;font-size:22px}
+.ruler-pu::after{content:'谱';position:absolute;top:30px;left:3px;font-size:10px;font-family:var(--mono);opacity:.7}
+.ruler-you{position:absolute;top:0;font-size:22px;transform:translateX(-50%);transition:left 1.2s cubic-bezier(.5,0,.2,1)}
+.ruler-you::after{content:'你';position:absolute;top:26px;left:50%;transform:translateX(-50%);font-size:10px;font-family:var(--mono);color:var(--red);font-weight:800}
+.ruler-km{position:absolute;right:0;top:-8px;font-family:var(--mono);font-size:11px;opacity:.7}
+.grade-tag{
+  display:inline-block;margin-top:14px;font-weight:900;font-size:18px;color:var(--red);
+  border-bottom:3px solid var(--red);padding:2px 4px;transform:rotate(-2deg);letter-spacing:.04em
+}
+.grade-tag::before{content:'阅：'}
+
+/* 锐评 */
+.roast{margin-top:18px;padding:16px 15px;border:2.5px solid var(--blue);border-radius:var(--wonky);background:#fff;transform:rotate(-.4deg)}
+.roast-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.12em;margin-bottom:9px;display:flex;align-items:center;gap:6px;color:var(--blue);font-weight:800}
+.roast-text{font-size:15.5px;font-weight:600;line-height:1.9;min-height:56px;white-space:pre-wrap}
+.roast-text .cursor{display:inline-block;width:9px;height:18px;background:var(--blue);vertical-align:-3px;animation:blink .8s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.roast-sign{margin-top:10px;font-family:var(--mono);font-size:11.5px;opacity:.7;text-align:right}
+
+/* 症状 */
+.sym{margin-top:18px}
+.sym-title{font-size:14px;font-weight:900;letter-spacing:.08em;margin-bottom:10px;font-family:var(--mono)}
+.sym-item{display:flex;gap:9px;font-size:14.5px;font-weight:600;line-height:1.75;padding:9px 0;border-bottom:2px dashed var(--line)}
+.sym-item:last-child{border-bottom:none}
+.sym-item .dot{color:var(--red);font-weight:900;flex:none;font-size:16px}
+.axes{margin-top:18px}
+.axis-row{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+.axis-cell{flex:1;text-align:center;font-size:13px;font-weight:700;padding:9px 4px;border:2px dashed var(--line);border-radius:var(--wonky2);opacity:.55;background:var(--paper)}
+.axis-cell.win{border:2.5px solid var(--ink);opacity:1;background:var(--hl);font-weight:900;transform:rotate(-1deg)}
+.axis-vs{font-family:var(--mono);font-size:10px;opacity:.6}
+
+/* 分享 / 叠加 / 工具包 */
+.share-hint{
+  margin-top:22px;text-align:center;font-size:13.5px;font-weight:800;
+  padding:14px;border:2.5px dashed var(--ink);border-radius:var(--wonky);background:var(--hl);transform:rotate(.5deg)
+}
+.share-hint .mono{font-size:11px;display:block;margin-top:5px;font-weight:700;opacity:.8}
+.combo{margin-top:28px;padding:18px 16px;border:3px solid var(--blue);border-radius:var(--wonky2);background:#fff;box-shadow:5px 6px 0 rgba(47,111,228,.25);transform:rotate(-.4deg)}
+.combo h3{font-size:19px;font-weight:900;margin-bottom:4px}
+.combo p.sub{font-size:13px;opacity:.7;margin-bottom:14px;font-weight:600}
+.combo-selects{display:flex;gap:10px;margin-bottom:13px}
+.combo select{
+  flex:1;font-family:inherit;font-size:15px;font-weight:700;padding:12px 10px;
+  border:2.5px solid var(--ink);border-radius:var(--wonky);background:var(--paper);appearance:none;outline:none
+}
+.combo-out{font-size:14.5px;font-weight:600;line-height:1.9;padding-top:8px;white-space:pre-wrap}
+.toolkit{margin-top:32px}
+.toolkit-head{text-align:center;margin-bottom:18px}
+.toolkit-head .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.2em;opacity:.7}
+.toolkit-head h2{
+  font-size:26px;font-weight:900;margin-top:6px;display:inline-block;transform:rotate(-1deg);
+  background:linear-gradient(transparent 58%,var(--hl) 58%,var(--hl) 94%,transparent 94%);padding:0 6px
+}
+.toolkit-head p{font-size:13.5px;opacity:.8;margin-top:8px;line-height:1.7;font-weight:600}
+.tool{
+  display:flex;align-items:center;gap:13px;width:100%;text-align:left;
+  border:2.5px solid var(--ink);background:#fff;border-radius:var(--wonky);padding:15px;margin-bottom:13px;
+  cursor:pointer;font-family:inherit;box-shadow:4px 5px 0 rgba(38,34,27,.22);transition:transform .07s
+}
+.tool:nth-child(odd){transform:rotate(-.6deg)}
+.tool:nth-child(even){transform:rotate(.5deg)}
+.tool:active{transform:translate(3px,3px)}
+.tool .ic{font-size:28px;flex:none}
+.tool .tt{font-size:16px;font-weight:900}
+.tool .td{font-size:12.5px;opacity:.7;margin-top:2px;line-height:1.5;font-weight:600}
+.tool .go{margin-left:auto;font-family:var(--mono);font-weight:900;color:var(--red);flex:none;font-size:18px}
+.footer-note{margin-top:28px;text-align:center;font-size:11.5px;opacity:.7;line-height:2.1;font-family:var(--mono)}
+
+/* modal */
+.modal-mask{position:fixed;inset:0;background:rgba(38,34,27,.55);display:none;align-items:center;justify-content:center;z-index:50;padding:30px}
+.modal-mask.on{display:flex}
+.modal{background:var(--paper);border:3px solid var(--ink);border-radius:var(--wonky);max-width:340px;width:100%;padding:24px 20px;text-align:center;box-shadow:7px 8px 0 rgba(38,34,27,.3);transform:rotate(-.6deg)}
+.modal h3{font-size:19px;font-weight:900;margin-bottom:8px}
+.modal p{font-size:13.5px;opacity:.8;line-height:1.8;margin-bottom:16px;font-weight:600}
+.qr-slot{width:170px;height:170px;border:2.5px dashed var(--ink);border-radius:var(--wonky2);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:46px;background:#fff}
+
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ================= LANDING ================= -->
+<div class="screen on" id="s-landing">
+  <div class="ticker"><div class="ticker-track" id="ticker-track"></div></div>
+  <div class="masthead"><b>JBTI™</b><span>卷号 NO.<span id="rpt-no">2026-0000</span></span></div>
+  <div class="landing-hero">
+    <div class="sticker">包治<br>画饼<small>限时免费</small></div>
+    <div class="jbti-logo"><span>J</span><span>B</span><span>T</span><span>I</span></div>
+    <div class="landing-sub">JB 是 Job，别想歪。</div>
+    <p class="landing-slogan">MBTI 测你是谁，<br>JBTI 测你的求职有多 <em>JB</em>。</p>
+    <div class="landing-meta">
+      <span class="chip">⏱ 3分钟</span>
+      <span class="chip">🧬 16+2种求职人格</span>
+      <span class="chip">🔓 无需注册</span>
+    </div>
+    <p class="fineprint">
+      本测试与 MBTI 没有任何关系，<b>与你想的那两个字更没有关系</b>。<br>
+      测得准是巧合，测不准是你没听劝。
+    </p>
+  </div>
+  <div class="grow"></div>
+  <div class="cta-stack">
+    <button class="cta" onclick="startTest()">开测，看看我有多离谱</button>
+    <button class="cta ghost" onclick="openGallery()">先偷看 16 种人格图鉴</button>
+  </div>
+</div>
+
+<!-- ================= QUESTION ================= -->
+<div class="screen" id="s-question">
+  <div class="masthead"><b>JBTI™</b><span>FORM JB-Q · 内部检测用</span></div>
+  <div style="margin-top:16px">
+    <div class="q-progress"><span>第 <b id="q-no">1</b> 饼 / 共 15 饼</span><span class="mono" id="q-axis-hint"></span></div>
+    <div class="q-bing" id="q-bing"></div>
+    <div class="q-bar"><i id="q-fill"></i></div>
+    <div class="q-title" id="q-title"><span class="qno">Q1</span>题目加载中…</div>
+    <div id="q-opts"></div>
+  </div>
+</div>
+
+<!-- ================= DREAM JOB ================= -->
+<div class="screen" id="s-dream">
+  <div class="masthead"><b>JBTI™</b><span>最后一步 · 交出你的饼</span></div>
+  <div style="margin-top:26px">
+    <div class="dream-label">你理想中的工作是？</div>
+    <div class="dream-hint">随便写，反正会被锐评。写得越具体，评得越准。</div>
+    <input class="dream-input" id="dream-input" maxlength="20" placeholder="例：进红杉做投资 / 当up主 / 考公"
+      autocomplete="off" enterkeyhint="done">
+    <div class="dream-chips" id="dream-chips"></div>
+  </div>
+  <div class="grow"></div>
+  <div class="cta-stack">
+    <button class="cta" onclick="submitDream()">交卷，等待宣判</button>
+  </div>
+</div>
+
+<!-- ================= LOADING ================= -->
+<div class="screen" id="s-loading">
+  <div class="load-wrap">
+    <div class="whale">🐋</div>
+    <div class="load-line load-dots" id="load-line">正在深度求索你的答案</div>
+  </div>
+</div>
+
+<!-- ================= RESULT ================= -->
+<div class="screen" id="s-result">
+  <div class="report" id="report-card">
+    <div class="report-head">
+      <b>JBTI™ 检测报告</b><span>NO.<span id="rpt-no2">2026-0000</span> · <span id="rpt-date"></span></span>
+    </div>
+    <div class="stamp" id="stamp">确诊<small>JBTI CERTIFIED</small></div>
+    <div class="scrawl s1">离谱！</div>
+    <div class="scrawl s2">就这？？</div>
+    <div class="report-body">
+      <div class="diag-eyebrow">经检测，你已确诊为</div>
+      <img class="persona-img" id="p-img" alt="" onerror="this.outerHTML='<div class=persona-emoji>'+(window.__pEmoji||'🫥')+'</div>'">
+      <div class="persona-name" id="p-name">——</div>
+      <div class="persona-code" id="p-code">····</div>
+      <div class="persona-tagline" id="p-tag">——</div>
+      <div class="rarity">同类患者占比 <b id="p-rarity">?%</b><span>·</span><span id="p-rarelabel"></span></div>
+
+      <div class="verdict">
+        <div class="v-eyebrow">◉ 人格判词</div>
+        <div id="p-desc"></div>
+      </div>
+
+      <hr class="dashline">
+
+      <div class="score-block">
+        <div class="score-row">
+          <span class="score-label">JB 浓度</span>
+          <span class="score-num"><span id="score-jb">0</span><small>%</small></span>
+        </div>
+        <div class="lipu-line">换算离谱距离：<b id="score-km">0 米</b></div>
+        <div class="ruler">
+          <span class="ruler-km">单位：离谱公里</span>
+          <div class="ruler-track"></div>
+          <span class="ruler-pu">📜</span>
+          <span class="ruler-you" id="ruler-you" style="left:4%">🏃</span>
+        </div>
+        <div class="grade-tag" id="grade-tag">检测中</div>
+        <div class="scrawl s3" style="position:static;display:inline-block;margin-left:10px;transform:rotate(-5deg)">重写！！</div>
+      </div>
+
+      <div class="roast">
+        <div class="roast-eyebrow">🐋 AI 锐评 · <span id="roast-status">对方正在输入</span></div>
+        <div class="roast-text" id="roast-text"><span class="cursor"></span></div>
+        <div class="roast-sign">—— 锐评人：一条神秘的东方鲸鱼（它不用找工作）</div>
+      </div>
+
+      <div class="sym">
+        <div class="sym-title">◉ 主要症状</div>
+        <div id="sym-list"></div>
+      </div>
+
+      <div class="axes">
+        <div class="sym-title">◉ 四轴成分表</div>
+        <div id="axes-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="share-hint">
+    📸 长按或截图这张报告，发给你的饼搭子对答案
+    <span class="mono">#JBTI# 我已离谱 <span id="share-km">?</span>，你呢</span>
+  </div>
+
+  <div class="combo">
+    <h3>🔐 三重人格叠加解读</h3>
+    <p class="sub">输入你的 MBTI 和星座，鲸鱼会算出更炸裂的东西。</p>
+    <div class="combo-selects">
+      <select id="sel-mbti"><option value="">MBTI</option></select>
+      <select id="sel-star"><option value="">星座</option></select>
+    </div>
+    <button class="cta blue" style="font-size:16px;padding:14px 0" onclick="runCombo()">叠加，让它一次说完</button>
+    <div class="combo-out" id="combo-out"></div>
+  </div>
+
+  <div class="toolkit">
+    <div class="toolkit-head">
+      <div class="eyebrow">测完了，然后呢</div>
+      <h2>把谱找回来 · 靠谱工具包</h2>
+      <p id="toolkit-lead">离谱不是病，一直离谱才是。三件免费装备，接你回谱上。</p>
+    </div>
+    <button class="tool" onclick="openTool('jobs')">
+      <span class="ic">🧭</span>
+      <span><span class="tt">对谱岗位推荐</span><br><span class="td" id="tool-jobs-desc">按你的人格，捞真的适合你的岗位</span></span>
+      <span class="go">→</span>
+    </button>
+    <button class="tool" onclick="openTool('ddl')">
+      <span class="ic">⏰</span>
+      <span><span class="tt">Deadline 追踪器</span><br><span class="td">秋招 due 全在这，一个不漏</span></span>
+      <span class="go">→</span>
+    </button>
+    <button class="tool" onclick="openTool('ats')">
+      <span class="ic">🩻</span>
+      <span><span class="tt">简历 ATS 雷点检测</span><br><span class="td">30 秒查出简历为什么已读不回</span></span>
+      <span class="go">→</span>
+    </button>
+    <div class="cta-stack" style="margin-top:18px">
+      <button class="cta ghost" onclick="restart()">↺ 再测一次（听说有隐藏人格）</button>
+    </div>
+    <div class="ticker" style="margin-top:26px"><div class="ticker-track" id="ticker-track2"></div></div>
+    <div class="footer-note">
+      本测试仅供娱乐 · 请勿写进简历<br>
+      为什么这个页脚是灰色的？因为它也没拿到offer<br>
+      AI 角色由一条杭州的鲸鱼友情出演，片酬为零<br>
+      JBTI™ · 潜历出品
+    </div>
+  </div>
+</div>
+
+<!-- modal -->
+<div class="modal-mask" id="modal-mask" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h3 id="modal-title">靠谱工具包</h3>
+    <p id="modal-desc">扫码进入潜历，工具全部免费。</p>
+    <div class="qr-slot">🐢</div>
+    <button class="cta" style="font-size:15px;padding:13px 0" onclick="closeModal()">知道了</button>
+  </div>
+</div>
+
+</div>
+<script>
+'use strict';
+/* ============================================================
+   CONFIG — 部署时只需要改这里
+   API_BASE: 指向 Cloudflare Worker / 云函数代理（见 worker.js）。
+   留空 = 纯前端模式，锐评走本地模板库，功能完整可演示。
+   ============================================================ */
+const CONFIG = {
+  API_BASE: '',                       // 例: 'https://jbti-proxy.xxx.workers.dev'
+  TOOL_LINKS: { jobs:'', ddl:'', ats:'' },  // 留空则弹小程序码弹窗
+  REVIEW_MODE: false                  // true = 审核版：JB浓度 → 画饼浓度
+};
+const JB_WORD = CONFIG.REVIEW_MODE ? '画饼浓度' : 'JB 浓度';
+
+/* ============ 题库 · 15题 ============
+   axes: G/L 卷躺 · M/P 钱爱 · S/T 群单 · I/O 体制/野
+   d: 离谱行为分 (-1 ~ +2)                     */
+const QUESTIONS = [
+ {t:'凌晨2点，due还剩8小时，室友喊你开一把。你的灵魂出窍，看着自己说：',axis:'G/L',o:[
+  {k:'A',t:'「就一把。」——然后天亮了，鸟叫了，due还是新的',a:{L:2},d:1},
+  {k:'B',t:'due是什么？能吃吗？好吃吗？给我来一份',a:{L:2},d:2},
+  {k:'C',t:'滚。今晚我跟due单挑，赢的那个活着见太阳',a:{G:2},d:0},
+  {k:'D',t:'左手挂机右手码字，最后两边一起送',a:{G:1},d:1}]},
+ {t:'半夜emo，你盯着天花板问自己：我到底图啥？',axis:'M/P',o:[
+  {k:'A',t:'图钱。别的都是包装，钱是本体',a:{M:2},d:0},
+  {k:'B',t:'图爽。人生已经这么苦了，班还不能挑个爱上的吗',a:{P:2},d:0},
+  {k:'C',t:'图热爱！（热爱目前月薪为零，但它会有的）',a:{P:2},d:2},
+  {k:'D',t:'图超越同龄人。具体超到哪，等超了再说',a:{M:2},d:2}]},
+ {t:'Coffee chat 在你的世界里是：',axis:'S/T',o:[
+  {k:'A',t:'一周三杯起步，咖啡因和人脉双重成瘾',a:{S:2,G:1},d:0},
+  {k:'B',t:'约过一次。全程「嗯嗯 对 是的 哈哈」，从此戒了',a:{T:2},d:0},
+  {k:'C',t:'？我以为找工作只要好好做题（天真的眼神）',a:{T:1},d:1},
+  {k:'D',t:'跟陌生人喝咖啡？我的社交电量只够扫码点单',a:{T:2},d:0}]},
+ {t:'家庭群里，七大姑发起总攻：「毕业准备干啥呀？」',axis:'I/O',o:[
+  {k:'A',t:'「考公！」全群欢呼，妈妈连发六个大拇指',a:{I:2},d:0},
+  {k:'B',t:'「要不……再读个书？」拖字诀，一拖天下无难事',a:{L:1},d:2},
+  {k:'C',t:'甩出五年规划PPT，含甘特图。全群已读不回',a:{G:2,I:1},d:0},
+  {k:'D',t:'「说了你们也不懂，新兴行业。」群里陷入诡异的安静',a:{O:2},d:1}]},
+ {t:'刷到「应届生年薪百万」的帖子，你：',axis:'行为',o:[
+  {k:'A',t:'逐帧研究，试图从像素里破译财富密码',a:{M:2},d:2},
+  {k:'B',t:'编的。都是编的。取关，眼不见为净',a:{},d:-1},
+  {k:'C',t:'酸0.5秒，回去继续改我那份月薪五千的简历',a:{G:1},d:0},
+  {k:'D',t:'转发家庭群，配文：「明年的我」',a:{},d:2}]},
+ {t:'简历投出去48份，回音：0。此刻的你：',axis:'G/L',
+  note:'冷知识：很多公司用ATS（机筛简历的机器人）做第一轮过滤。你可能啥都没做错，就被机器人干掉了。',o:[
+  {k:'A',t:'继续投。第49份就是天命之子，我赌了',a:{G:2},d:0},
+  {k:'B',t:'是ATS的错。机器人不懂欣赏人类',a:{},d:1},
+  {k:'C',t:'停投闭关，简历不改到发光不出山',a:{G:1,T:1},d:0},
+  {k:'D',t:'先躺会儿。风水轮流转，总会转到我',a:{L:2},d:1}]},
+ {t:'小组project开工，你的官方定位：',axis:'S/T',o:[
+  {k:'A',t:'自封PM，把组员安排得明明白白，包括他们的命',a:{S:2,G:1},d:0},
+  {k:'B',t:'领我的活，交我的货，别@我第二次',a:{T:2},d:0},
+  {k:'C',t:'气氛组组长，兼deadline前夜道歉艺术家',a:{S:1,L:1},d:1},
+  {k:'D',t:'全程潜水，pre前一天诈尸式营业',a:{T:1,L:2},d:1}]},
+ {t:'「上岸」两个字，对你意味着：',axis:'I/O',o:[
+  {k:'A',t:'编制。一眼望到头？我要的就是这个头',a:{I:2},d:0},
+  {k:'B',t:'给自己打工。老板画的饼，不如我自产自销',a:{O:2},d:1},
+  {k:'C',t:'大厂工牌。挂上那一刻的朋友圈文案我都想好了',a:{I:1,M:1},d:0},
+  {k:'D',t:'岸是弱者的港湾。我，选择当鱼',a:{O:2},d:1}]},
+ {t:'两个offer打起来了：钱多的不爱，爱的钱砍半。',axis:'M/P',o:[
+  {k:'A',t:'拿钱。爱这个东西，下班以后有的是时间爱',a:{M:2},d:0},
+  {k:'B',t:'选爱。为不爱的东西早起，是当代酷刑',a:{P:2},d:0},
+  {k:'C',t:'都拒了。真命offer还在路上，我等',a:{},d:2},
+  {k:'D',t:'先拿钱多的骑驴找马。驴，不能白骑',a:{M:1,G:1},d:0}]},
+ {t:'你微信里的求职群，现状是：',axis:'S/T',o:[
+  {k:'A',t:'23个，全部星标，消息追得比对象的还紧',a:{S:2},d:0},
+  {k:'B',t:'加了，全员免打扰，红点已攒到四位数',a:{T:1},d:0},
+  {k:'C',t:'我建的群。我发的群规。我踢的人',a:{S:2,G:1},d:0},
+  {k:'D',t:'不加群。信息自己挖，独狼不需要狼群',a:{T:2,O:1},d:0}]},
+ {t:'你的领英/LinkedIn，此刻的状态：',axis:'G/L',o:[
+  {k:'A',t:'周更。headline改过八版，一版比一版膨胀',a:{G:2,S:1},d:0},
+  {k:'B',t:'注册于三年前，头像至今是灰色剪影',a:{L:2},d:0},
+  {k:'C',t:'领英？听起来像个英语培训机构',a:{L:1},d:1},
+  {k:'D',t:'从不发言，专门潜水偷看同学都混成啥样了',a:{T:1},d:0}]},
+ {t:'五年后，你希望名片上印的是：',axis:'I/O',o:[
+  {k:'A',t:'某单位·某科员。字越少，编制越硬',a:{I:2},d:0},
+  {k:'B',t:'Founder。哪怕公司就我一个人和一个公众号',a:{O:2},d:1},
+  {k:'C',t:'大厂title，越长越好，最好一口气读不完',a:{I:1,M:1},d:0},
+  {k:'D',t:'不要名片。作品会替我说话（作品：暂无）',a:{O:2,P:1},d:1}]},
+ {t:'为求职花过的最大一笔钱：',axis:'行为',o:[
+  {k:'A',t:'四位数改简历。改完发现，改的是我的心态',a:{G:1,M:1},d:0},
+  {k:'B',t:'一杯咖啡。coffee chat那杯，喝出过面试',a:{S:1},d:0},
+  {k:'C',t:'零元。白嫖是刻在DNA里的生存智慧',a:{},d:0},
+  {k:'D',t:'没花过钱，但收藏夹里躺着48门「必买」课',a:{L:1},d:1}]},
+ {t:'十年后，你最理想的一帧画面：',axis:'M/P',o:[
+  {k:'A',t:'财务自由，在家族群发红包，单个200的那种',a:{M:2},d:1},
+  {k:'B',t:'干着热爱的事，穷但眼里有光（电费欠费的光）',a:{P:2},d:1},
+  {k:'C',t:'平平安安有班上，工资准时到，就够了',a:{I:1},d:-1},
+  {k:'D',t:'没细想。但直觉告诉我：肯定牛',a:{},d:2}]},
+ {t:'最后一题：你猜，这个测试会怎么审判你？',axis:'玄学',o:[
+  {k:'A',t:'肯定说我离谱。没事，离谱是我的舒适区',a:{},d:1},
+  {k:'B',t:'跪求AI嘴下留情，我脆皮',a:{},d:0},
+  {k:'C',t:'我的人生规划密不透风，不服来辩',a:{},d:2},
+  {k:'D',t:'随便。如何呢？又能怎？谁问你了？',a:{L:1},d:0}]}
+];
+
+/* ============ 16人格 + 2隐藏 ============ */
+const PERSONAS = {
+ GMSI:{name:'人脉海王',tag:'每个mentor都以为自己是我的唯一。',rar:3.1,base:[18,40],emoji:'🌊',
+  desc:'恭喜！您并非油腻，您是社会学「弱连接理论」失散多年的极限实践者。真正改变命运的从来不是挚友，是那个只喝过一杯咖啡的点头之交——您深谙此道，把LinkedIn经营成了自己的近海渔场。您信奉的不是社交，是经过学术验证的生存法则：一、多一个好友，多一条活路；二、mentor不嫌多，咖啡不嫌苦。',
+  sym:['通讯录按"利用价值"分组，且有备注系统','LinkedIn消息回复速度比对象快','听到"内推"两个字瞳孔会放大'],
+  jobs:'BD、投行IBD、猎头、咨询——所有靠嘴和腿吃饭的岗位'},
+ GMSO:{name:'风口韭菜',tag:'每个风口都割过我，但我永远相信下一个。',rar:5.8,base:[45,75],emoji:'🌪️',
+  desc:'恭喜！您并非韭菜，您是风险投资精神在散户界的原始信徒。别人被割是结束，您被割是热身——您对新事物的信仰纯度超过99%的VC，唯一的区别是VC烧的是别人的钱。您信奉两条铁律：一、下一个风口一定有我；二、这次真的不一样（此话第五次生效中）。',
+  sym:['简历技能栏跟着热搜实时更新','Web3的亏还没回本，已经all in AI','"这次不一样"说过不止四次'],
+  jobs:'增长黑客、新赛道BD、创业公司万金油——风越大越来劲的岗'},
+ GMTI:{name:'GPA貔貅',tag:'4.0，只进不出。',rar:6.5,base:[25,50],emoji:'🐉',
+  desc:'恭喜！您并非卷王，您是上古神兽貔貅在学术界的转世灵童。貔貅吞金不泄，您吞分不泄——每0.1个绩点都被焊死在成绩单上。当别人在朋友圈晒生活，您在Excel里推演「这门课B+会把我拉到3.87还是3.86」。您信奉的是物理法则级的真理：一、能选给分课，绝不碰硬骨头；二、曲线，是用来卡别人的。',
+  sym:['选课先查give分历史，再查教学质量','曲线被拉低时会记住那个人','简历第一行永远是GPA，字号偏大'],
+  jobs:'量化、研究岗、四大审计——拿硬指标说话的地方'},
+ GMTO:{name:'全职在家研究员',tag:'学也不上了，班也不上了，我将全职在家研究改变世界的App。',rar:4.2,base:[55,85],emoji:'🧪',
+  desc:'恭喜！您并非无业，您是车库创业神话在东八区的唯一指定传人。乔布斯在车库里造电脑，您在卧室里造PPT——本质相同，都是在密闭空间里相信自己能改变世界。产品还没上线，融资故事已迭代到V7。信条：一、上线不急，叙事先行；二、我不是没工作，我是在pre-seed轮。',
+  sym:['GitHub绿格子茂盛，银行卡余额荒芜','产品没上线，融资PPT已经V7了','对"独角兽"三个字有生理性冲动'],
+  jobs:'独立开发、早期创业团队、极客型岗位——但先把MVP发出来'},
+ GPSI:{name:'上岸念经人',tag:'宇宙的尽头是编制，我在编外念经。',rar:8.9,base:[20,45],emoji:'🛕',
+  desc:'恭喜！您并非保守，您是这个动荡时代最后的秩序信徒。当别人追逐风口被拍得七荤八素，您早已看破天机：所有风口的尽头，都是编制。您把人生的不确定性整体外包给了国家——这是普通人能执行的最大额对冲交易。信条：一、宇宙的尽头是编制；二、今年不行明年再战，编制不老，我心不死。',
+  sym:['粉笔APP使用时长超过所有社交软件','背过的申论素材比发过的朋友圈多','"今年不行明年再战"已成年度弹幕'],
+  jobs:'公务员、事业编、国企管培——但备胎方案也得有一个'},
+ GPSO:{name:'乌托邦销冠',tag:'这个改变世界的项目，就差你一个了。',rar:3.4,base:[50,80],emoji:'📣',
+  desc:'恭喜！您并非空想，您是理想主义与销售话术杂交出的巅峰品种。您能把一个没有商业模式的项目讲出改变人类文明的气势——听众热泪盈眶，投资人夺路而逃。您卖的不是产品，是「世界本可以更好」这种幻觉，而幻觉恰恰是这个时代最硬的通货。信条：一、先感动自己，再感动世界；二、落地？那是执行层的事。',
+  sym:['谈理想时眼里有光，谈落地时眼神飘忽','拉人入伙的话术比商业计划书成熟','认为"用爱发电"是可行的商业模式'],
+  jobs:'NGO、社会企业、品牌策划——理想主义也能开工资的地方'},
+ GPTI:{name:'天坑守墓人',tag:'劝人学我这专业，天打雷劈。',rar:5.1,base:[30,60],emoji:'🪦',
+  desc:'恭喜！您并非受害者，您是学术围城的终身荣誉守门人。您劝退了137个学弟学妹，自己却默默续费读博——这不是矛盾，是爱得深沉。天坑之所以是天坑，是因为里面埋着您的青春，而人不能背叛自己的青春。信条：一、劝人学我这专业，天打雷劈；二、但谁敢说我专业不好，我跟谁拼命。',
+  sym:['一边劝退学弟学妹，一边自己续费读博','对本专业又爱又恨，以恨为主','转行帖收藏了87篇，一篇没执行'],
+  jobs:'科研、技术专家岗，或者认真考虑那87篇转行帖'},
+ GPTO:{name:'野生梵高',tag:'活着不红，红了没活。',rar:2.8,base:[55,85],emoji:'🌻',
+  desc:'恭喜！您并非怀才不遇，您是梵高精神在算法时代的野生续作。梵高生前只卖出一幅画，您的作品集浏览量常年个位数——历史总是惊人地相似，这反而让您心安。您坚信商业化是对创作的亵渎，于是贫穷成了您艺术纯度的官方认证。信条：一、伯乐会来的（伯乐目前已读不回）；二、红是庸俗的，但可以先庸俗一下。',
+  sym:['作品集惊艳，投递记录空白','觉得"商业化"是对创作的侮辱','坚信自己会被伯乐发现（伯乐currently已读不回）'],
+  jobs:'设计、内容、创意岗——先让伯乐能搜到你'},
+ LMSI:{name:'带薪NPC',tag:'上班的意义，是下班。',rar:11.2,base:[15,38],emoji:'🧍',
+  desc:'恭喜！您并非咸鱼，您是当代职场行为艺术的无冕大师。NPC的最高境界，是让系统以为你在运行——您的每一次点头、每一句「收到」，都是对绩效社会最优雅的敷衍。您不是不努力，您是把努力精准控制在不被裁的最低阈值，这需要极高的算力。信条：一、上班的意义是下班；二、工资到账那一秒，人间值得。',
+  sym:['工位就是充电桩，下班瞬间满电复活','对"狼性文化"过敏，起红疹那种','薪资到账短信是唯一心动信号'],
+  jobs:'流程稳定的大厂中后台、国企——把NPC当成一种可持续人生'},
+ LMSO:{name:'大佬收藏家',tag:'通讯录估值一个亿，余额四位数。',rar:4.6,base:[45,72],emoji:'💼',
+  desc:'恭喜！您并非虚荣，您是人际关系界的卢浮宫馆长。别人集邮，您集大佬——每张合影、每个微信好友，都是您私人博物馆的珍贵藏品。藏品从不变现，因为真正的收藏家不卖藏品。您的通讯录估值一个亿，且与所有顶级博物馆一致：只展览，不流通。信条：一、这事我认识人；二、认识，不代表要麻烦人家。',
+  sym:['饭局咖位很高，饭后收获很少','口头禅是"这事我认识人"','人脉变现计划永远停留在计划'],
+  jobs:'渠道、商务、资源型岗位——把认识的人真的用起来'},
+ LMTI:{name:'闷声牛马',tag:'别问在干嘛，问就是在搞钱（还没搞到）。',rar:9.7,base:[20,45],emoji:'🐂',
+  desc:'恭喜！您并非抠门，您是「闷声发大财」古老哲学的当代践行者（目前完成了前半句）。您嘴上淡泊名利，收藏夹里躺着两百篇搞钱攻略；理财APP装了五个，本金合计一千五。正是这种野心与本金之间的巨大落差，构成了您独有的静默张力。信条：一、别问，问就是在搞；二、搞到之前，谁也别告诉。',
+  sym:['理财APP五个，本金一千五','嘴上淡泊名利，收藏夹全是搞钱攻略','"闷声发大财"目前只完成了闷声'],
+  jobs:'财务、运营、后端——闷声型选手的主场'},
+ LMTO:{name:'躺杠青年',tag:'斜杠青年？我每条杠都是躺着的。',rar:6.3,base:[40,70],emoji:'🛋️',
+  desc:'恭喜！您并非三分钟热度，您是人生可能性的终身囤积者。斜杠青年靠斜杠谋生，您靠斜杠续命——每开一个新副业的坑，人生就多一条退路（虽然每条都是烂尾路）。收藏教程的速度永远快于学完的速度，这不是拖延，是对未来的过度储蓄。信条：一、艺多不压身，学不学再说；二、探索期，是一种长期主义。',
+  sym:['副业列表五个，产出总和为零','把"探索期"过成了常驻状态','认为收藏教程约等于掌握技能'],
+  jobs:'自由职业、远程岗——但先把一条杠立起来'},
+ LPSI:{name:'简历气氛组',tag:'面试群里最活跃，offer名单里最安静。',rar:7.4,base:[28,55],emoji:'🎉',
+  desc:'恭喜！您并非陪跑，您是求职生态链里最稀缺的暖光型生物。别人收割offer，您收割人心——面试群里您是全员嘴替，网申深夜您是人形客服，同学的简历您改得比自己的还勤。offer会过期，但「那个帮过我的人」这个title永不过期。信条：一、我可以没有offer，但群里不能没有我；二、情绪价值，也是硬通货。',
+  sym:['求职群消息秒回，网申链接周抛','帮同学改的简历比自己投的多','情绪价值拉满，简历价值待定'],
+  jobs:'HR、用户运营、社群——把气氛组转正的岗位'},
+ LPSO:{name:'离职博主预备役',tag:'还没入职，已经在构思离职vlog了。',rar:5.2,base:[45,75],emoji:'🎬',
+  desc:'恭喜！您并非不敬业，您是把人生当片场的先锋派导演。别人挑工作看薪资，您看出片率——工位要能出镜，工牌要能开箱，离职vlog的脚本在入职前就已定稿。对您来说，班不是用来上的，是用来叙事的。信条：一、工作是素材，生活才是正片；二、万物皆可「家人们谁懂」。',
+  sym:['把工作视为素材，把生活视为正片','简历写两行，小红书简介写八行','梦想岗位的核心指标是"出片率"'],
+  jobs:'内容运营、市场、MCN——把出片率变成KPI'},
+ LPTI:{name:'编制淡人',tag:'不想赢，只想别输得太难看。',rar:8.6,base:[15,38],emoji:'🍵',
+  desc:'恭喜！您并非躺平，您是喧嚣时代里稀有的低耗能永动机。浓人靠情绪驱动，您靠惯性滑行——不争不抢不内耗，把人生功率稳定压在5瓦。别人以为您淡泊，其实您只是算得精：赢的成本太高，不输才是最优解。信条：一、不想赢，只想别输得太难看；二、波澜不惊，既是境界，也是省电模式。',
+  sym:['对一切竞争性活动自动静音','人生目标是"平稳落地，无人在意"','情绪波动区间约等于一条直线'],
+  jobs:'图书馆、档案、稳定型事业岗——淡是一种战略资源'},
+ LPTO:{name:'赛博陶渊明',tag:'不为五斗米打卡。',rar:7.2,base:[35,68],emoji:'⛰️',
+  desc:'恭喜！您并非逃避，您是隐逸文化在数字时代的正统嫡传。陶渊明不为五斗米折腰，您不为五险一金打卡——一千六百年过去，反抗对象从县令变成了钉钉。您的南山尚未找到，但精神已采菊东篱，只剩肉身还堵在早高峰。信条：一、心远地自偏，wifi要满格；二、种豆南山下，豆价先查一下。',
+  sym:['理想办公地点：任何没有工位的地方','对"坐班"两个字有原则性反对','南山还没找到，豆已经种不起了'],
+  jobs:'远程开发、自由撰稿、数字游民岗——先解决豆的问题'},
+ /* 隐藏 */
+ X_SAT:{name:'近地卫星',tag:'你已脱离地心引力，正在稳定绕地飞行。',rar:0.6,base:[95,99],emoji:'🛰️',hidden:true,
+  desc:'恭喜？您已经不能算一种人格，您是人类航天史上首个纯靠画饼推进的飞行器。普通人的梦有起有落，您的梦有稳定轨道——离地太久，连地心引力都已放弃对您的管辖。本报告量程到99%为止，而您在量程之外。信条：一、等我火了；二、（信号中断）',
+  sym:['与地面失联已久，信号良好','所有计划的第一步都是"等我火了"','离谱到已经不在尺子的量程内'],
+  jobs:'（信号中断，无法推送）'},
+ X_DIM:{name:'活人微死',tag:'没画过饼，也没吃过饭。',rar:0.9,base:[3,8],emoji:'🕯️',hidden:true,
+  desc:'恭喜！您并非胆小，您是「清醒过量」的稀有临床案例。别人是想太多做太少，您是想得太透彻以至于不敢开局——每个计划都在脑内推演到了失败结局，于是干脆不按开始键。生命体征正常，求职体征微弱，但火苗没灭。信条：一、不投就不会被拒；二、（小声）但其实，还是想要的。',
+  sym:['清醒到不敢做任何梦','简历完美主义：改了38版，投了0份','生命体征正常，求职体征微弱'],
+  jobs:'你不是没实力，是不敢投。先投一份，今天。'}
+};
+
+/* ============ 理想工作参数卡（本地库，命中即不走LLM）============
+   pro: 岗位偏好的四轴  w: 各轴权重1-3  hard: 门槛1-5  crowd: 拥挤1-5  clear: 路径清晰1-5 */
+const JOB_CARDS = [
+ {kw:['投行','ibd','ib','红杉','pe','vc','投资','私募','基金'],label:'金融投资',pro:{0:'G',1:'M',2:'S',3:'O'},w:[3,2,3,1],hard:5,crowd:5,clear:2},
+ {kw:['咨询','mbb','麦肯锡','bcg','贝恩'],label:'咨询',pro:{0:'G',1:'M',2:'S',3:'I'},w:[3,2,3,1],hard:5,crowd:5,clear:3},
+ {kw:['大厂','产品','pm','产品经理','互联网','字节','腾讯','阿里'],label:'大厂产品',pro:{0:'G',1:'M',2:'S',3:'I'},w:[2,1,2,1],hard:4,crowd:5,clear:4},
+ {kw:['程序','码农','开发','算法','软件','swe','工程师','ai','人工智能'],label:'技术研发',pro:{0:'G',1:'M',2:'T',3:'I'},w:[3,1,1,1],hard:4,crowd:4,clear:4},
+ {kw:['量化','quant','对冲'],label:'量化',pro:{0:'G',1:'M',2:'T',3:'O'},w:[3,3,1,1],hard:5,crowd:4,clear:3},
+ {kw:['公务员','考公','编制','事业编','体制','国企','央企','选调'],label:'体制内',pro:{0:'G',1:'P',2:'S',3:'I'},w:[2,1,1,3],hard:4,crowd:5,clear:5},
+ {kw:['博主','up主','网红','自媒体','小红书','抖音','主播','kol'],label:'博主',pro:{0:'G',1:'M',2:'S',3:'O'},w:[2,1,2,3],hard:2,crowd:5,clear:1},
+ {kw:['创业','founder','开公司','主理人','老板'],label:'创业',pro:{0:'G',1:'M',2:'S',3:'O'},w:[3,1,2,3],hard:4,crowd:3,clear:1},
+ {kw:['教授','学术','读博','phd','科研','研究员','高校'],label:'学术',pro:{0:'G',1:'P',2:'T',3:'I'},w:[3,2,1,2],hard:5,crowd:4,clear:3},
+ {kw:['设计','艺术','插画','导演','编剧','作家','音乐'],label:'创意',pro:{0:'G',1:'P',2:'T',3:'O'},w:[2,2,1,2],hard:3,crowd:4,clear:2},
+ {kw:['四大','审计','会计','财务'],label:'财会',pro:{0:'G',1:'M',2:'T',3:'I'},w:[2,1,1,2],hard:2,crowd:4,clear:5},
+ {kw:['老师','教师','教育'],label:'教育',pro:{0:'G',1:'P',2:'S',3:'I'},w:[1,2,2,2],hard:3,crowd:4,clear:5},
+ {kw:['律师','法律','律所'],label:'法律',pro:{0:'G',1:'M',2:'S',3:'I'},w:[3,1,2,2],hard:5,crowd:4,clear:4},
+ {kw:['医生','医学','医院'],label:'医疗',pro:{0:'G',1:'P',2:'S',3:'I'},w:[3,1,1,2],hard:5,crowd:3,clear:5},
+ {kw:['躺','不上班','退休','家里蹲','全职儿女','gap'],label:'不上班',pro:{0:'L',1:'P',2:'T',3:'O'},w:[1,2,1,1],hard:1,crowd:1,clear:1,funny:'unemployed'},
+ {kw:['没想好','不知道','没有','迷茫','随便'],label:'还没想好',pro:null,funny:'undecided'}
+];
+const DREAM_CHIPS = ['投行/咨询','大厂产品','公务员','当博主','量化','创业','还没想好'];
+
+/* ============ 状态 ============ */
+const S = {qi:0, ax:{G:0,L:0,M:0,P:0,S:0,T:0,I:0,O:0}, d:0, dream:'', card:null, persona:null, jb:0, km:''};
+
+/* ============ 通用 ============ */
+const $ = id => document.getElementById(id);
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$(id).classList.add('on');window.scrollTo(0,0)}
+const RPT = '2026-' + String(Math.floor(1000+Math.random()*9000));
+$('rpt-no').textContent = RPT;
+
+/* ============ 谐音梗弹幕（无厘头rap体）============ */
+const JOKES = [
+ '为什么面试官都爱吃挂面？因为看到谁都想挂。',
+ '大厂跟大肠打架，谁赢了？大肠。因为大厂裁员了。',
+ '为什么鲸鱼不投简历？因为海里没有KPI。',
+ 'offer跟我表白，我犹豫了一下，然后呢？没有然后了，它过期了。',
+ '为什么ATS不谈恋爱？因为它只会已读不回。',
+ '为什么考公人不怕鬼？因为鬼也要考编。',
+ '为什么简历不会游泳？因为一投就石沉大海。',
+ '秋招和春招打架，谁赢了？我输了，两边都没有我。',
+ '为什么画饼的人不饿？因为饼太大，看一眼就饱了。'
+];
+function fillTicker(id){
+  const el=$(id); if(!el) return;
+  const half=JOKES.map(j=>'<span>🀄 '+j+'</span>').join('');
+  el.innerHTML=half+half; /* 两倍内容做无缝循环 */
+}
+fillTicker('ticker-track');
+
+
+/* ============ 流程：题目 ============ */
+function startTest(){
+  S.qi=0; Object.keys(S.ax).forEach(k=>S.ax[k]=0); S.d=0;
+  renderQ(); show('s-question');
+}
+function renderQ(){
+  const q = QUESTIONS[S.qi];
+  $('q-no').textContent = S.qi+1;
+  $('q-fill').style.width = (S.qi/QUESTIONS.length*100)+'%';
+  $('q-bing').textContent = '🫓'.repeat(S.qi) + '〇'.repeat(QUESTIONS.length-S.qi);
+  $('q-axis-hint').textContent = 'AXIS·'+q.axis;
+  $('q-title').innerHTML = '<span class="qno">Q'+(S.qi+1)+'</span>'+q.t;
+  const box = $('q-opts'); box.innerHTML='';
+  q.o.forEach(o=>{
+    const b=document.createElement('button'); b.className='opt';
+    b.innerHTML='<span class="k">'+o.k+'</span><span>'+o.t+'</span>';
+    b.onclick=()=>{ b.classList.add('picked'); setTimeout(()=>pick(o),140) };
+    box.appendChild(b);
+  });
+  if(q.note){ const n=document.createElement('div'); n.className='q-note';
+    n.innerHTML='💡 <b>'+q.note.split('：')[0]+'</b>：'+q.note.split('：').slice(1).join('：'); box.appendChild(n); }
+}
+function pick(o){
+  for(const k in o.a) S.ax[k]+=o.a[k];
+  S.d += o.d||0;
+  S.qi++;
+  if(S.qi<QUESTIONS.length) renderQ();
+  else { renderChips(); show('s-dream'); setTimeout(()=>$('dream-input').focus(),300); }
+}
+
+/* ============ 流程：理想工作 ============ */
+function renderChips(){
+  const box=$('dream-chips'); box.innerHTML='';
+  DREAM_CHIPS.forEach(c=>{
+    const s=document.createElement('span'); s.className='chip'; s.textContent=c;
+    s.onclick=()=>{ $('dream-input').value=c; box.querySelectorAll('.chip').forEach(x=>x.classList.remove('picked')); s.classList.add('picked') };
+    box.appendChild(s);
+  });
+}
+function matchCard(text){
+  const t=(text||'').toLowerCase();
+  for(const c of JOB_CARDS) if(c.kw.some(k=>t.includes(k))) return c;
+  return null;
+}
+function submitDream(){
+  S.dream = $('dream-input').value.trim() || '还没想好';
+  S.card = matchCard(S.dream);
+  show('s-loading'); runLoading();
+  compute().then(showResult);
+}
+
+/* ============ 加载过场 ============ */
+const LOAD_LINES=[
+ '正在深度求索你的答案…','鲸鱼看完你的答案，沉默了 0.3 秒…',
+ 'J1|为什么鲸鱼不投简历？|因为海里没有KPI。',
+ '正在计算你和谱的距离…',
+ 'J2|为什么面试官都爱吃挂面？|因为看到谁都想挂。',
+ '正在联系你的理想工作，对方已读乱回…',
+ 'J3|大厂跟大肠打架谁赢了？|大肠，因为大厂裁员了。'];
+let loadTimer;
+function renderLoadLine(s){
+  const el=$('load-line');
+  if(s.startsWith('J')){ const p=s.split('|'); el.innerHTML='冷知识陪等区：<br>'+p[1]+'<br><span class="joke-a">'+p[2]+'</span>'; el.classList.remove('load-dots'); }
+  else { el.textContent=s; el.classList.add('load-dots'); }
+}
+function runLoading(){
+  let i=0; renderLoadLine(LOAD_LINES[0]);
+  clearInterval(loadTimer);
+  loadTimer=setInterval(()=>{ i=(i+1)%LOAD_LINES.length; renderLoadLine(LOAD_LINES[i]) },1600);
+}
+
+/* ============ 打分引擎（确定性）============ */
+function letters(){
+  return [S.ax.G>=S.ax.L?'G':'L', S.ax.M>=S.ax.P?'M':'P', S.ax.S>=S.ax.T?'S':'T', S.ax.I>=S.ax.O?'I':'O'];
+}
+async function compute(){
+  const t0=Date.now();
+  const L = letters();
+  /* 隐藏人格触发（条件保密）*/
+  let code;
+  if(S.d>=15) code='X_SAT';
+  else if(S.d<=0) code='X_DIM';
+  else code=L.join('');
+  S.persona = PERSONAS[code]; S.persona.code = code;
+
+  /* 参数卡：本地命中 → 直接用；未命中且有API → LLM抽取；否则默认卡 */
+  let card = S.card;
+  if(!card && CONFIG.API_BASE){
+    try{ card = await apiExtract(S.dream) }catch(e){}
+  }
+  if(!card) card = {label:S.dream,pro:{0:'G',1:'M',2:'S',3:'I'},w:[2,2,2,2],hard:3,crowd:3,clear:3,unknown:true};
+  S.card = card;
+
+  /* 公式：基础带(人格) + 轴错配 + 难度 + 行为分 */
+  const p = S.persona;
+  let jb;
+  if(p.hidden){ jb = rand(p.base[0],p.base[1]); }
+  else{
+    const base = (p.base[0]+p.base[1])/2;
+    let mis=0, mw=0;
+    if(card.pro){ for(let i=0;i<4;i++){ mw+=card.w[i]; if(L[i]!==card.pro[i]) mis+=card.w[i]; } }
+    const misPct = mw? mis/mw : 0.3;                       // 0~1
+    const diff = card.hard*card.crowd/25;                  // 0~1
+    const clarity = (5-card.clear)/4;                      // 0~1
+    const dNorm = Math.max(0,Math.min(1,S.d/14));          // 0~1
+    jb = base*0.35 + misPct*38 + diff*16 + clarity*8 + dNorm*22;
+    jb = Math.round(Math.max(5,Math.min(94,jb)));
+    /* 同人格同工作 → 同分：以确定性输入取整，无随机项 */
+  }
+  S.jb = Math.round(jb);
+  const kmv = Math.pow(S.jb/100,1.6)*10;
+  S.km = kmv<1 ? Math.round(kmv*1000)+' 米' : kmv.toFixed(1)+' 公里';
+
+  /* 保证过场至少2.4秒，reveal才有仪式感 */
+  const wait = Math.max(0, 2400-(Date.now()-t0));
+  return new Promise(r=>setTimeout(r,wait));
+}
+function rand(a,b){return Math.round(a+Math.random()*(b-a))}
+function grade(jb,code){
+  if(code==='X_SAT') return '查无此谱';
+  if(code==='X_DIM') return '在谱上焊死了';
+  if(jb<20) return '还在谱上（稀有）';
+  if(jb<45) return '有点离谱';
+  if(jb<70) return '相当离谱';
+  if(jb<90) return '离了个大谱';
+  return '离谱到家了';
+}
+
+/* ============ 结果渲染 ============ */
+function showResult(){
+  clearInterval(loadTimer);
+  const p=S.persona;
+  $('rpt-no2').textContent=RPT;
+  $('rpt-date').textContent=new Date().toLocaleDateString('zh-CN');
+  window.__pEmoji=p.emoji;
+  if(p.hidden){ $('p-img').outerHTML='<div class="persona-emoji" id="p-img">'+p.emoji+'</div>' }
+  else $('p-img').src='./'+p.code+'.webp';
+  $('p-name').textContent=p.name;
+  $('p-code').textContent=p.hidden?'HIDDEN · '+p.code.replace('X_',''):p.code.split('').join(' · ');
+  $('p-tag').textContent='"'+p.tag+'"';
+  $('p-rarity').textContent=p.rar+'%';
+  $('p-desc').textContent=p.desc;
+  $('p-rarelabel').textContent=p.hidden?'隐藏人格，恭喜（吗）':(p.rar<4?'稀有患者':'常见病，别慌');
+  document.querySelector('.score-block .score-label').textContent=JB_WORD;
+  $('sym-list').innerHTML=p.sym.map(s=>'<div class="sym-item"><span class="dot">▸</span><span>'+s+'</span></div>').join('');
+  renderAxes();
+  $('toolkit-lead').textContent = p.code==='X_DIM'
+    ? '你不是没实力，是不敢投。三件免费装备，陪你投出第一份。'
+    : '离谱不是病，一直离谱才是。三件免费装备，接你回谱上。';
+  $('tool-jobs-desc').textContent = p.hidden?'按你的隐藏人格，捞真的适合你的岗位':'适合「'+p.name+'」体质的岗位，我筛好了';
+  fillTicker('ticker-track2');
+  show('s-result');
+
+  /* 数字滚动 + 盖章 + 尺子 */
+  animateNum($('score-jb'),S.jb,900);
+  setTimeout(()=>{ $('score-km').textContent=S.km; $('share-km').textContent=S.km;
+    $('grade-tag').textContent=grade(S.jb,p.code);
+    $('ruler-you').style.left=Math.max(4,Math.min(96,S.jb))+'%'; },900);
+  setTimeout(()=>$('stamp').classList.add('slam'),1250);
+  setTimeout(()=>runRoast(),1500);
+  initComboSelects();
+}
+function animateNum(el,target,dur){
+  const t0=performance.now();
+  (function step(t){const k=Math.min(1,(t-t0)/dur);el.textContent=Math.round(target*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(step)})(t0);
+}
+function renderAxes(){
+  const L=letters(), names=[['卷王 G','躺子 L'],['搞钱 M','为爱 P'],['社牛 S','单机 T'],['编制脑 I','野路子 O']];
+  const p=S.persona;
+  $('axes-list').innerHTML = names.map((pair,i)=>{
+    const win = p.hidden ? -1 : ('GMSI'[i]===L[i]?0:1);
+    return '<div class="axis-row">'+
+      '<div class="axis-cell'+(win===0?' win':'')+'">'+pair[0]+'</div>'+
+      '<span class="axis-vs">VS</span>'+
+      '<div class="axis-cell'+(win===1?' win':'')+'">'+pair[1]+'</div></div>';
+  }).join('');
+}
+
+/* ============ AI 锐评：API流式 → 失败走模板 ============ */
+async function runRoast(){
+  const el=$('roast-text');
+  let text='';
+  if(CONFIG.API_BASE){
+    try{ text = await apiRoast(); }catch(e){ text=''; }
+  }
+  if(!text) text = localRoast();
+  typewrite(el,text,()=>{$('roast-status').textContent='锐评完毕'});
+}
+function typewrite(el,text,done){
+  el.innerHTML=''; let i=0;
+  const cur=document.createElement('span');cur.className='cursor';
+  const tick=()=>{ if(i<text.length){ el.textContent=text.slice(0,++i); el.appendChild(cur); setTimeout(tick,text.length>90?28:38) } else {cur.remove(); done&&done()} };
+  tick();
+}
+function localRoast(){
+  const p=S.persona, c=S.card, L=letters();
+  if(p.code==='X_SAT') return '不评了。你的答案我看了三遍，每一题都选在了大气层。理想工作是「'+S.dream+'」？可以，反正你已经在轨道上了，顺路。建议保持通讯畅通，等信号。';
+  if(p.code==='X_DIM') return '你可能是今天唯一一个不需要泼冷水的人——你自带冰窖。「'+S.dream+'」其实没你想的那么远，远的是你和"投出第一份简历"之间的距离。先投一份，就今天，鲸鱼看着你。';
+  if(c.unknown) return '「'+S.dream+'」——这个职业我在人类招聘市场查了三遍，查无此谱。要么是你走得太前面，要么是你在逗一条鲸鱼。本着疑罪从有的原则，先按'+p.name+'的常规离谱量刑，不服的话，写个真的工作再来。';
+  if(c.funny==='undecided') return '理想工作填「'+S.dream+'」？连饼都懒得画，'+p.name+'的含金量还在上升。别人是理想太满，你是画布全空——好消息是空白画布不会离谱，坏消息是它也不会上岸。';
+  if(c.funny==='unemployed') return '理想工作是「'+S.dream+'」，很诚实，我尊重。但'+p.name+'想不上班，通常需要先上过班——这一步你的规划里好像还是虚线。建议把"不上班"设为十年目标，先解决下个月。';
+  /* 常规：点名gap */
+  const gapAxis=[];
+  if(c.pro){ const an=[['卷','躺'],['搞钱','为爱'],['社交','单机'],['体制','野路子']];
+    for(let i=0;i<4;i++) if(L[i]!==c.pro[i]&&c.w[i]>=2) gapAxis.push('人家要「'+an[i]['GMSI'[i]===c.pro[i]?0:1]+'」型选手，你是「'+an[i]['GMSI'[i]===L[i]?0:1]+'」型体质');
+  }
+  const gapLine = gapAxis.length? gapAxis[0]+'，光这一条就吃掉你一半浓度。':'方向倒是对得上，离谱主要离在执行栏——你的行动量和你的野心不在一个次元。';
+  const hardLine = c.hard>=5?'再加上「'+c.label+'」这条道门槛顶格、人均卷王，':(c.crowd>=5?'再加上这条赛道的拥挤程度堪比早八地铁，':'');
+  return '「'+S.dream+'」配'+p.name+'，有创意。'+gapLine+hardLine+'离谱'+S.km+'不算绝症，'+(S.jb>=70?'但按你现在的走法，谱只会越甩越远。':'拉回来一半，故事就成立了。')+'处方在下面，免费的。';
+}
+
+/* ============ MBTI × 星座 叠加 ============ */
+const MBTIS='INTJ INTP ENTJ ENTP INFJ INFP ENFJ ENFP ISTJ ISFJ ESTJ ESFJ ISTP ISFP ESTP ESFP'.split(' ');
+const STARS='白羊 金牛 双子 巨蟹 狮子 处女 天秤 天蝎 射手 摩羯 水瓶 双鱼'.split(' ');
+function initComboSelects(){
+  if($('sel-mbti').options.length>1) return;
+  MBTIS.forEach(m=>$('sel-mbti').add(new Option(m,m)));
+  STARS.forEach(s=>$('sel-star').add(new Option(s+'座',s)));
+}
+const M_FRAG={
+ E:'能量来自人群，面试全靠现挂，尬聊都能聊出主场感',
+ I:'内心戏产量惊人，一场面试脑内预演八十遍，正片反而卡壳',
+ N:'饼是真的会画，蓝图直接画到2035年，中间步骤为空',
+ S:'账是真的会算，连梦想都要先过一遍性价比审计',
+ T:'嘴是真的毒，锐评别人的offer头头是道，轮到自己就沉默',
+ F:'心是真的软，拒绝一个offer要内疚三天，仿佛欠了HR的',
+ J:'计划表做得比人生还精美，Notion里的自己早就上岸了',
+ P:'deadline是真正的第一生产力，不到最后一夜不知道自己多强'};
+const STAR_FRAG={
+ 白羊:'冲动投递第一名，JD只看头三行就点了申请',
+ 金牛:'谈薪从不脸红，谈理想反而支支吾吾',
+ 双子:'职业规划一天换八版，每版都深信不疑',
+ 巨蟹:'offer签不签，要先发回家庭群公投',
+ 狮子:'面试自带主角光环，被拒都觉得是剧情需要',
+ 处女:'简历改到第38版仍未投出，追求一种投递界的洁癖',
+ 天秤:'两个offer能纠结到双双过期，最后一个没捞着',
+ 天蝎:'表面云淡风轻，实则已把面试官的领英翻到了2014年',
+ 射手:'裸辞界的天选之人，说走就走，走完再想',
+ 摩羯:'卷是刻进骨头的，休息时会产生负罪感',
+ 水瓶:'赛道选得没人看得懂，包括水瓶自己',
+ 双鱼:'把画饼过成了行为艺术，且饼里含有诗'};
+const COMBO_TITLE=[
+ [80,'「三高晚期」：理想高、饼高、离地高，且拒绝治疗'],
+ [60,'「高危画饼体质」：饼的产能远超消化系统'],
+ [40,'「间歇性清醒患者」：白天认清现实，深夜重新离谱'],
+ [20,'「伪淡人」：看着风平浪静，饼在心里偷偷发酵'],
+ [0,'「过度贴地飞行」：谱倒是没离，就是活得有点太用力地不用力']];
+function comboTitle(jb){for(const [t,s] of COMBO_TITLE) if(jb>=t) return s; return COMBO_TITLE[4][1]}
+async function runCombo(){
+  const m=$('sel-mbti').value, st=$('sel-star').value, out=$('combo-out');
+  if(!m||!st){ out.textContent='把两个都选上，鲸鱼才肯开口。'; return; }
+  out.textContent='🐋 正在深度求索三重玄学数据库…';
+  let text='';
+  if(CONFIG.API_BASE){ try{ text=await apiCombo(m,st) }catch(e){} }
+  if(!text){
+    const p=S.persona;
+    const frag1=M_FRAG[m[0]], frag2=M_FRAG[m[1]], frag3=M_FRAG[m[3]];
+    text = '【会诊报告】'+m+' × '+st+'座 × '+p.name+'\n'
+      +'经鲸鱼交叉比对三大玄学数据库，判定你属于'+comboTitle(S.jb)+'。\n'
+      +'拆开看：'+m+'这边，'+frag1+'；'+frag2+'；偏偏还'+frag3+'。'
+      +'再叠上'+st+'座的被动技能——'+STAR_FRAG[st]+'。'
+      +'最后由「'+p.name+'」（'+p.tag.replace(/。$/,'')+'）负责把以上全部buff实体化，形成闭环。\n'
+      +(S.jb>=60
+        ?'临床表现：你不是在找工作，你是在用找工作的形式进行一场大型行为艺术，且暂无谢幕计划。三个系统在你身上达成了罕见共识：饼，还能再大一点。'
+        :'临床表现：三个系统互相制衡，你体内住着一个画饼的、一个算账的、一个看戏的，目前看戏的占上风。这种体质离谱得很克制，属于「有救，且救起来不贵」。')
+      +'\n处置建议：原图转发搭子群，配文「快来看我被AI会诊了」。';
+  }
+  typewrite(out,text);
+}
+
+/* ============ API 层（有代理时启用）============ */
+async function apiExtract(dream){
+  const r=await fetch(CONFIG.API_BASE+'/extract',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dream})});
+  if(!r.ok) throw 0; const j=await r.json();
+  return {label:dream,pro:j.pro,w:j.w,hard:j.hard,crowd:j.crowd,clear:j.clear};
+}
+async function apiRoast(){
+  const r=await fetch(CONFIG.API_BASE+'/roast',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({persona:S.persona.name,code:S.persona.code,tag:S.persona.tag,letters:letters().join(''),dream:S.dream,jb:S.jb,km:S.km,card:S.card})});
+  if(!r.ok) throw 0; const j=await r.json(); return j.text||'';
+}
+async function apiCombo(m,st){
+  const r=await fetch(CONFIG.API_BASE+'/combo',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({persona:S.persona.name,mbti:m,star:st,jb:S.jb,dream:S.dream})});
+  if(!r.ok) throw 0; const j=await r.json(); return j.text||'';
+}
+
+/* ============ 工具包 / 弹窗 / 重测 / 图鉴 ============ */
+const TOOL_META={jobs:['对谱岗位推荐','按你的人格捞岗位，进潜历免费用。'],ddl:['Deadline 追踪器','秋招due一个不漏，进潜历免费用。'],ats:['ATS 雷点检测','30秒查出简历为什么已读不回。']};
+function openTool(k){
+  const link=CONFIG.TOOL_LINKS[k];
+  if(link){ location.href=link; return; }
+  $('modal-title').textContent=TOOL_META[k][0];
+  $('modal-desc').textContent=TOOL_META[k][1]+' 扫码或搜索小程序「潜历」。';
+  $('modal-mask').classList.add('on');
+}
+function closeModal(){$('modal-mask').classList.remove('on')}
+function restart(){ location.reload() }
+/* debug 句柄（不影响线上）*/
+window.__JBTI__={S,QUESTIONS,PERSONAS,compute,grade,letters,matchCard};
+
+function openGallery(){
+  /* 简易图鉴：弹窗轮播人格名，正式版可拆独立页 */
+  const list=Object.values(PERSONAS).filter(p=>!p.hidden).map(p=>p.name).join(' · ');
+  $('modal-title').textContent='16 种求职人格';
+  $('modal-desc').textContent=list+'（还有 2 种隐藏人格，触发条件保密）';
+  $('modal-mask').classList.add('on');
+}
+
+</script>
+</body>
+</html>
