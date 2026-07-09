@@ -61,6 +61,18 @@ async function ds(env, messages, opts = {}) {
 const clamp = (n, a, b) => Math.max(a, Math.min(b, Math.round(Number(n) || a)));
 const clean = (s, max) => String(s || '').replace(/\s+/g, ' ').slice(0, max);
 
+/* 超长时在句号/叹号/问号处收尾，绝不把句子拦腰切断 */
+function trimToSentence(s, maxChars) {
+  s = String(s || '').trim();
+  if (s.length > maxChars) s = s.slice(0, maxChars);
+  if (!/[。！？…!?”』」]$/.test(s)) {
+    let cut = -1;
+    for (const p of ['。', '！', '？', '…', '!', '?']) cut = Math.max(cut, s.lastIndexOf(p));
+    if (cut >= 20) s = s.slice(0, cut + 1);   // 至少凑满一句就回退到句读；全程无标点才原样保留
+  }
+  return s;
+}
+
 /* ---------- /extract：LLM当解析器，不当裁判 ---------- */
 async function extract(body, env, ctx) {
   const dream = clean(body.dream, 20);
@@ -128,9 +140,9 @@ async function roast(body, env) {
   let text = await ds(env, [
     { role: 'system', content: sys },
     { role: 'user', content: usr },
-  ], { temp: 1.0, max: 240 });
+  ], { temp: 1.0, max: 360 });
 
-  text = text.replace(/^["“」『]+|["”」』]+$/g, '').slice(0, 140); // 输出端硬截断
+  text = trimToSentence(text.replace(/^["“」『]+|["”」』]+$/g, ''), 220); // 超长按句收尾，不拦腰切
   return json({ text });
 }
 
@@ -148,7 +160,7 @@ async function combo(body, env) {
   let text = await ds(env, [
     { role: 'system', content: sys },
     { role: 'user', content: usr },
-  ], { temp: 1.0, max: 320 });
-  text = text.slice(0, 260);
+  ], { temp: 1.0, max: 560 });
+  text = trimToSentence(text, 420);
   return json({ text });
 }

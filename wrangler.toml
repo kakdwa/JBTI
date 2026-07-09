@@ -1,0 +1,9 @@
+# JBTI DeepSeek 代理的部署配置
+# 首次使用：npx wrangler login（浏览器授权一次）
+# 以后每次改完 worker.js：npx wrangler deploy
+name = "small-limit-15c4"
+main = "worker.js"
+compatibility_date = "2026-07-09"
+
+# 保留你在 Cloudflare 后台手动配置的环境变量（如 DEEPSEEK_KEY），部署时不清除
+keep_vars = true
