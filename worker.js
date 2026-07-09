@@ -33,7 +33,8 @@ export default {
       if (url.pathname === '/roast') return await roast(body, env);
       if (url.pathname === '/combo') return await combo(body, env);
     } catch (e) {
-      return json({ error: 'upstream' }, 502);
+      // detail 形如 "ds 401"（key无效）/ "ds 402"（余额不足）/ "ds 429"（限流），便于排查
+      return json({ error: 'upstream', detail: String(e && e.message || e) }, 502);
     }
     return json({ error: 'not found' }, 404);
   },
