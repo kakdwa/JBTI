@@ -373,6 +373,35 @@ body{
 }
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
+/* ---- 合盘 ---- */
+.duo{margin-top:28px;padding:18px 16px;border:3px solid var(--red);border-radius:var(--wonky);background:#fff;box-shadow:5px 6px 0 rgba(229,56,46,.22);transform:rotate(.35deg)}
+.duo h3{font-size:19px;font-weight:900;margin-bottom:4px}
+.duo p.sub{font-size:13px;opacity:.7;margin-bottom:14px;font-weight:600}
+.duo-nick{width:100%;font-family:inherit;font-size:15px;font-weight:700;padding:12px 12px;margin-bottom:12px;
+  border:2.5px solid var(--ink);border-radius:var(--wonky2);background:var(--paper);outline:none}
+.duo-nick:focus{border-color:var(--red)}
+.duo-vs{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:6px 0 14px}
+.duo-side{flex:1;text-align:center;min-width:0}
+.duo-side .em{font-size:34px;line-height:1}
+.duo-side .nm{font-size:14.5px;font-weight:900;margin-top:4px}
+.duo-side .who{font-size:11px;font-weight:700;opacity:.6;font-family:var(--mono)}
+.duo-side .jbv{font-size:11.5px;font-weight:700;font-family:var(--mono);opacity:.8;margin-top:2px}
+.duo-x{font-size:13px;font-weight:900;font-family:var(--mono);color:var(--red);flex:0 0 auto}
+.duo-score{text-align:center;margin:4px 0 2px}
+.duo-score b{font-size:52px;font-weight:800;font-family:var(--mono);color:var(--red)}
+.duo-score small{font-size:20px;color:var(--red)}
+.duo-score .lbl{display:block;font-size:11.5px;font-weight:700;font-family:var(--mono);opacity:.65;margin-bottom:2px}
+.duo-title{text-align:center;font-size:20px;font-weight:900;margin:2px 0 3px}
+.duo-subtitle{text-align:center;font-size:13px;font-weight:600;opacity:.75;margin-bottom:12px}
+.duo-lines{border-top:2px dashed rgba(38,34,27,.25);padding-top:12px}
+.duo-line{display:flex;gap:8px;font-size:13.5px;font-weight:600;line-height:1.7;margin-bottom:8px}
+.duo-line .dot{color:var(--red);flex:0 0 auto}
+.duo-ai{font-size:14px;font-weight:600;line-height:1.85;background:var(--paper);border-radius:12px;padding:12px 13px;margin-top:10px;white-space:pre-wrap}
+.duo-ai-eyebrow{font-size:11.5px;font-weight:800;font-family:var(--mono);opacity:.65;margin:14px 0 0}
+.duo-again{margin-top:16px;border-top:2px dashed rgba(38,34,27,.25);padding-top:14px}
+.duo-banner{margin:14px auto 0;max-width:92%;background:var(--hl);border:2.5px solid var(--ink);border-radius:var(--wonky2);
+  padding:10px 14px;font-size:13.5px;font-weight:800;text-align:center;transform:rotate(-.6deg)}
+
 .stage-ask{margin:24px 4px 0;text-align:center}
 .stage-ask .stage-q{font-size:14px;font-weight:800;opacity:.85}
 .stage-ask .dream-chips{margin-top:12px}
@@ -392,6 +421,7 @@ body{
     <div class="sticker">包测<br>离谱<small>限时免费</small></div>
     <div class="jbti-logo"><span>J</span><span>B</span><span>T</span><span>I</span></div>
     <div class="landing-sub">JB 是 Job，别想歪。</div>
+    <div class="duo-banner" id="duo-banner" style="display:none"></div>
     <p class="landing-slogan">MBTI 测你是谁，<br>JBTI 测你的求职有多 <em>JB</em>。</p>
     <div class="landing-meta">
       <span class="chip">⏱ 3分钟</span>
@@ -536,6 +566,33 @@ body{
       <button class="plat" onclick="openShare('sys')"><span>📲</span>更多</button>
     </div>
     <div class="share-sub mono">卡片自带二维码 · 我已离谱 <span id="share-km">?</span> · 搭子扫码就能测</div>
+  </div>
+
+  <div class="duo" id="duo-sec">
+    <div id="duo-card" style="display:none">
+      <h3>🤝 搭子合盘报告</h3>
+      <p class="sub" id="duo-card-sub">经玄学交叉比对，结果如下。</p>
+      <div class="duo-vs">
+        <div class="duo-side"><div class="em" id="duo-em-a">🐋</div><div class="nm" id="duo-nm-a">—</div><div class="who" id="duo-who-a">TA</div><div class="jbv" id="duo-jb-a"></div></div>
+        <div class="duo-x">VS</div>
+        <div class="duo-side"><div class="em" id="duo-em-b">🐋</div><div class="nm" id="duo-nm-b">—</div><div class="who">你</div><div class="jbv" id="duo-jb-b"></div></div>
+      </div>
+      <div class="duo-score"><span class="lbl">搭子适配度</span><b id="duo-score">0</b><small>%</small></div>
+      <div class="duo-title" id="duo-title">…</div>
+      <div class="duo-subtitle" id="duo-subtitle"></div>
+      <div class="duo-lines" id="duo-lines"></div>
+      <div class="duo-ai-eyebrow" id="duo-ai-eyebrow" style="display:none">🐋 鲸鱼看完这对搭子，有话说</div>
+      <div class="duo-ai" id="duo-ai" style="display:none"></div>
+    </div>
+    <div id="duo-invite">
+      <h3 id="duo-invite-h">🤝 拉个搭子来合盘</h3>
+      <p class="sub">ta测完自动出你们的适配度，顺便看看谁离谱得更远。</p>
+      <input class="duo-nick" id="duo-nick" maxlength="8" placeholder="你的代号（选填，默认：神秘搭子）" autocomplete="off">
+      <div class="cta-stack">
+        <button class="cta blue" style="font-size:16px;padding:14px 0" onclick="copyDuoLink()">🔗 复制合盘链接，甩给ta</button>
+        <button class="cta ghost" style="font-size:15px;padding:12px 0" onclick="sameDeviceDuo()">📱 ta就在旁边？把手机递过去测</button>
+      </div>
+    </div>
   </div>
 
   <div class="stage-ask" id="stage-ask" style="display:none">
@@ -875,6 +932,169 @@ function fillTicker(id){
 }
 fillTicker('ticker-track');
 
+/* ============ 搭子合盘 ============
+   打分设计（对称、确定，同一对人永远同分）：
+   - 0轴卷躺(权重2.5)、1轴钱爱(2)、3轴体制野(3)：越相似越合，节奏/价值观/赛道对得上才是搭子
+   - 2轴社交单机(1.5)：互补加分，一个拉群一个潜水是黄金分工
+   - JB浓度同频占28%；理想工作同类目+4并点破"既是搭子也是对手"
+   - 用每轴连续倾向度(-10~10)而非二值字母，分数自然铺开；低分档判词也好笑，照样有人晒 */
+const DUO_TITLES=[
+ [92,'天选搭子','全网约1%的组合，到了可以互相代投简历的程度'],
+ [80,'黄金搭子','组队找工作，效率翻倍，内耗减半'],
+ [66,'很搭，能处','一起投简历不累，偶尔互呛助兴'],
+ [52,'塑料搭子','表面互相加油，背地互相观望，也算一种平衡'],
+ [38,'鸡同鸭讲','聊求职三句就岔道，好在聊八卦还挺合'],
+ [24,'相互免疫','你的焦虑传染不到ta，ta的佛系也救不了你'],
+ [0,'八字相克','建议只做饭搭子，求职的事各走各的']];
+const DUO_LINES={
+ 0:{GG:'双卷合璧：约图书馆没人放鸽子，就是容易互相卷出内伤',
+    GL:'一个卷到闭馆，一个躺到日上三竿，你们的作息这辈子都对不上表',
+    LL:'双躺组合：在一起是真快乐，简历是真的一份没投'},
+ 1:{MM:'都是搞钱脑：聊天记录全是「这个能不能赚」，感情反而很纯粹',
+    MP:'一个谈钱一个谈梦想，吃顿饭都能聊出价值观危机，但吵不散',
+    PP:'双为爱发电：理想管够，电费再想办法'},
+ 2:{SS:'俩社牛搭伙：宣讲会能开成你们的专场，记得给别人留话筒',
+    ST:'一个负责拉群暖场，一个负责潜水干活，黄金分工就这么诞生的',
+    TT:'双单机玩家：各刷各的题，偶尔交换一个眼神，就算深度社交了'},
+ 3:{II:'都奔着编制去：上岸资料无缝共享，万一岗位撞了，考场上别相认',
+    IO:'一个要上岸一个要出海，过年家庭群里互为反面教材',
+    OO:'双野路子：没人劝得住你们，正好，互相壮胆'}};
+const AXIS_WORDS=[['卷','躺'],['搞钱','为爱'],['社牛','单机'],['体制','野路子']];
+
+function myLeans(){
+  return [['G','L'],['M','P'],['S','T'],['I','O']].map(pair=>{
+    const t=S.ax[pair[0]]+S.ax[pair[1]];
+    return t? Math.max(-10,Math.min(10,Math.round((S.ax[pair[0]]-S.ax[pair[1]])/t*10))) : 0;
+  });
+}
+function myDuoPayload(nick){
+  return {v:1,n:(nick||'').slice(0,8),p:S.persona.code,jb:S.jb,d:(S.card&&S.card.label)||'',dr:S.dream.slice(0,20),l:myLeans()};
+}
+function duoEnc(o){
+  const b=new TextEncoder().encode(JSON.stringify(o)); let s='';
+  b.forEach(x=>s+=String.fromCharCode(x));
+  return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function duoDec(str){
+  try{
+    let s=String(str).replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4)s+='=';
+    const bin=atob(s), b=new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++)b[i]=bin.charCodeAt(i);
+    const o=JSON.parse(new TextDecoder().decode(b));
+    if(!o || !PERSONAS[o.p] || !Array.isArray(o.l) || o.l.length!==4) return null;
+    o.l=o.l.map(x=>Math.max(-10,Math.min(10,Math.round(Number(x)||0))));
+    o.jb=Math.max(0,Math.min(99,Math.round(Number(o.jb)||0)));
+    o.n=String(o.n||'').slice(0,8); o.d=String(o.d||'').slice(0,20); o.dr=String(o.dr||'').slice(0,20);
+    return o;
+  }catch(e){ return null }
+}
+function duoScore(A,B){
+  const lA=A.l.map(x=>x/10), lB=B.l.map(x=>x/10);
+  const sim=i=>1-Math.abs(lA[i]-lB[i])/2;
+  const comp=Math.abs(lA[2]-lB[2])/2;
+  const axisScore=(2.5*sim(0)+2*sim(1)+1.5*comp+3*sim(3))/9;
+  const jbSim=1-Math.abs(A.jb-B.jb)/100;
+  const sameDream=!!(A.d&&B.d&&A.d===B.d);
+  /* 拉伸映射经2万对模拟标定：随机对均值≈60铺满7档，天选档全网≈1%保持稀缺 */
+  let score=Math.round((.72*axisScore+.28*jbSim)*150-41)+(sameDream?4:0);
+  score=Math.max(5,Math.min(99,score));
+  /* 逐轴判词 + 找反差最大的轴 */
+  const lines=[]; let diffIdx=0,diffMax=-1;
+  for(let i=0;i<4;i++){
+    const a='GMSI'[i], b='LPTO'[i];
+    const kA=lA[i]>=0?a:b, kB=lB[i]>=0?a:b;
+    const key=(kA===a&&kB===a)?a+a:((kA===b&&kB===b)?b+b:a+b);
+    lines.push(DUO_LINES[i][key]);
+    const gap=Math.abs(lA[i]-lB[i]);
+    if(gap>diffMax){diffMax=gap;diffIdx=i}
+  }
+  const jbGap=Math.abs(A.jb-B.jb);
+  if(jbGap>=40)lines.push('离谱浓度差了'+jbGap+'个点：一个在平流层飞，一个在地面上追');
+  else if(jbGap<=8)lines.push('离谱浓度几乎同频，难怪一拍即合');
+  if(sameDream)lines.push('还盯上了同一条赛道：平时是搭子，投简历时是对手，先说好谁让谁');
+  /* 判词：特殊组合优先覆盖 */
+  let t=null;
+  if(A.p===B.p&&!PERSONAS[A.p].hidden)t=['世界上的另一个我','连离谱的方式都一模一样，抱团吧'];
+  else if(A.p==='X_SAT'&&B.p==='X_SAT')t=['双星连珠','两颗卫星同轨运行，地面已无人能劝'];
+  else if((A.p==='X_SAT'&&B.p==='X_DIM')||(A.p==='X_DIM'&&B.p==='X_SAT'))t=['天地专线','一个在近地轨道，一个在地下室，信号延迟感人但真挚'];
+  else if(A.p==='X_DIM'&&B.p==='X_DIM')t=['相依为命','两根小火苗，风一吹都晃，凑近点更暖和'];
+  if(!t)for(const bk of DUO_TITLES){ if(score>=bk[0]){t=[bk[1],bk[2]];break} }
+  const w=AXIS_WORDS[diffIdx];
+  const diffText=((lA[diffIdx]>=0)!==(lB[diffIdx]>=0))
+    ? '一个偏'+(lA[diffIdx]>=0?w[0]:w[1])+'，一个偏'+(lB[diffIdx]>=0?w[0]:w[1])
+    : '两人几乎同款，连差异都不明显';
+  return {score,title:t[0],sub:t[1],lines,diffText,sameDream};
+}
+
+/* 进站时识别合盘邀请：链接参数 或 同机模式的本地暂存 */
+const DUO_PARTNER=(()=>{
+  try{
+    const q=new URLSearchParams(location.search).get('duo');
+    if(q){ const o=duoDec(q); if(o) return o; }
+    const w=localStorage.getItem('jbti_duo_wait');
+    if(w){ const o=duoDec(w); if(o) return o; }
+  }catch(e){}
+  return null;
+})();
+if(DUO_PARTNER && !S.src) S.src='duo';
+if(DUO_PARTNER){
+  const b=$('duo-banner');
+  b.textContent='🤝 '+(DUO_PARTNER.n||'神秘搭子')+' 向你发起搭子合盘：测完自动出你们的适配度';
+  b.style.display='';
+}
+
+function renderDuoSection(){
+  if(!DUO_PARTNER) return;
+  const pt=DUO_PARTNER, me=myDuoPayload('');
+  const res=duoScore(pt,me);
+  const pp=PERSONAS[pt.p];
+  $('duo-em-a').textContent=pp.emoji; $('duo-nm-a').textContent=pp.name;
+  $('duo-who-a').textContent=pt.n||'神秘搭子'; $('duo-jb-a').textContent=JB_WORD+' '+pt.jb+'%';
+  $('duo-em-b').textContent=S.persona.emoji; $('duo-nm-b').textContent=S.persona.name;
+  $('duo-jb-b').textContent=JB_WORD+' '+S.jb+'%';
+  $('duo-title').textContent='「'+res.title+'」';
+  $('duo-subtitle').textContent=res.sub;
+  const lb=$('duo-lines'); lb.innerHTML='';
+  res.lines.forEach(txt=>{
+    const d=document.createElement('div'); d.className='duo-line';
+    const s1=document.createElement('span'); s1.className='dot'; s1.textContent='▸';
+    const s2=document.createElement('span'); s2.textContent=txt;
+    d.append(s1,s2); lb.appendChild(d);
+  });
+  $('duo-card').style.display='';
+  $('duo-invite-h').textContent='🤝 换你拉下一个搭子';
+  setTimeout(()=>animateNum($('duo-score'),res.score,900),400);
+  runDuoAI(pt,me,res);
+  try{ localStorage.removeItem('jbti_duo_wait') }catch(e){}
+}
+async function runDuoAI(pt,me,res){
+  if(!CONFIG.API_BASE) return;
+  try{
+    const j=await apiPost('/duo',{aName:pt.n||'ta',aPersona:PERSONAS[pt.p].name,aDream:pt.dr||pt.d||'保密',aJb:pt.jb,
+      bPersona:S.persona.name,bDream:S.dream,bJb:S.jb,score:res.score,title:res.title,diff:res.diffText,sameDream:res.sameDream?1:0});
+    if(j.text){
+      $('duo-ai-eyebrow').style.display=''; const el=$('duo-ai'); el.style.display='';
+      typewrite(el,j.text); AI_STATUS.duo='DeepSeek在线 ✓';
+    }
+  }catch(e){ AI_STATUS.duo='失败：'+e.message }
+}
+function duoLink(){
+  const base=(CONFIG.SHARE_URL || (location.origin==='null' ? location.href.split('?')[0] : location.origin+location.pathname));
+  const nick=$('duo-nick').value.trim().slice(0,8)||'神秘搭子';
+  return base+(base.includes('?')?'&':'?')+'duo='+duoEnc(myDuoPayload(nick))+'&src=duo';
+}
+async function copyDuoLink(){
+  if(!S.persona) return;
+  const t='我在JBTI测出「'+S.persona.name+'」，'+JB_WORD+' '+S.jb+'%。点开测完，自动出我们俩的搭子适配度👇\n'+duoLink();
+  toast((await copyText(t))?'合盘链接已复制 ✓ 甩到群里或私发都行':'复制失败了，再点一次试试');
+}
+function sameDeviceDuo(){
+  if(!S.persona) return;
+  const nick=$('duo-nick').value.trim().slice(0,8)||'刚才那位';
+  try{ localStorage.setItem('jbti_duo_wait',duoEnc(myDuoPayload(nick))) }catch(e){}
+  toast('已记住你的结果 ✓ 把手机递给ta，从头测一遍');
+  setTimeout(()=>{ location.href = location.origin==='null' ? location.href.split('?')[0] : location.pathname },1000);
+}
 
 /* ============ 流程：题目 ============ */
 function startTest(){
@@ -1098,7 +1318,7 @@ function showResult(){
   setTimeout(()=>runRoast(),1500);
   setTimeout(()=>buildCard().catch(()=>{}),1800);  /* 预生成分享卡，点开即秒出 */
   initComboSelects();
-  sendSurvey(); initStage();
+  sendSurvey(); initStage(); renderDuoSection();
 }
 
 /* ============ 调研数据上报（匿名，静默失败）============ */
@@ -1129,6 +1349,7 @@ function initStage(){
 function animateNum(el,target,dur){
   const t0=performance.now();
   (function step(t){const k=Math.min(1,(t-t0)/dur);el.textContent=Math.round(target*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(step)})(t0);
+  setTimeout(()=>{el.textContent=target},dur+150);   /* 页面被切后台时rAF会停摆，兜底写终值 */
 }
 function renderAxes(){
   const L=letters(), names=[['卷王 G','躺子 L'],['搞钱 M','为爱 P'],['社牛 S','单机 T'],['编制脑 I','野路子 O']];
@@ -1238,7 +1459,7 @@ async function runCombo(){
 
 /* ============ API 层（有代理时启用）============ */
 const API_ROOT=(CONFIG.API_BASE||'').replace(/\/+$/,'');  /* 去尾斜杠：workers 路由精确匹配 /roast，//roast 会 404 */
-const AI_STATUS={extract:'未调用',roast:'未调用',combo:'未调用'};  /* 控制台 __JBTI__.AI_STATUS 可查 */
+const AI_STATUS={extract:'未调用',roast:'未调用',combo:'未调用',duo:'未调用'};  /* 控制台 __JBTI__.AI_STATUS 可查 */
 
 /* 启动时拉一次动态标签池：KV里没配置就用本地内置的 */
 if(API_ROOT){
@@ -1610,7 +1831,7 @@ function openTool(k){
 function closeModal(){$('modal-mask').classList.remove('on')}
 function restart(){ location.reload() }
 /* debug 句柄（不影响线上）*/
-window.__JBTI__={S,QUESTIONS,PERSONAS,compute,grade,letters,matchCard,AI_STATUS};
+window.__JBTI__={S,QUESTIONS,PERSONAS,compute,grade,letters,matchCard,AI_STATUS,duoScore,duoEnc,duoDec};
 
 function openGallery(){
   /* 简易图鉴：弹窗轮播人格名，正式版可拆独立页 */
