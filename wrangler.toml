@@ -7,3 +7,9 @@ compatibility_date = "2026-07-09"
 
 # 保留你在 Cloudflare 后台手动配置的环境变量（如 DEEPSEEK_KEY），部署时不清除
 keep_vars = true
+
+# 求职痛点调研库（/survey 端点写入）
+[[d1_databases]]
+binding = "JBTI_DB"
+database_name = "jbti-survey"
+database_id = "3defb8ec-bc9d-4e75-97a5-6b865fb2fd33"

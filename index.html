@@ -373,6 +373,11 @@ body{
 }
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
+.stage-ask{margin:24px 4px 0;text-align:center}
+.stage-ask .stage-q{font-size:14px;font-weight:800;opacity:.85}
+.stage-ask .dream-chips{margin-top:12px}
+.stage-ask .done{font-size:14px;font-weight:700;opacity:.75;margin-top:10px}
+
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
 </style>
 </head>
@@ -435,6 +440,24 @@ body{
   <div class="cta-stack">
     <button class="cta" onclick="submitDream()">交卷，等待宣判</button>
     <button class="q-navbtn" style="align-self:flex-start" onclick="backToQuiz()">← 回去改答案</button>
+  </div>
+</div>
+
+<!-- ================= PROBE（求职痛点追问）================= -->
+<div class="screen" id="s-probe">
+  <div class="masthead"><b>JBTI™</b><span>附加卷 · 就一道，不算分</span></div>
+  <div style="margin-top:26px">
+    <div class="dream-label" id="probe-title">…</div>
+    <div class="dream-hint" id="probe-hint">最多选3个。</div>
+    <div class="dream-chips" id="probe-chips"></div>
+    <div class="dream-hint" style="margin:20px 0 0">没列到的自己写，越具体鲸鱼评得越狠（可留空）：</div>
+    <input class="dream-input" id="probe-input" maxlength="60" style="font-size:16px"
+      placeholder="例：保安亭有没有空调 / 下班会不会被微信追杀" autocomplete="off" enterkeyhint="done">
+  </div>
+  <div class="grow"></div>
+  <div class="cta-stack">
+    <button class="cta" onclick="submitProbe(false)">问完了，看结果</button>
+    <button class="q-navbtn" style="align-self:flex-start" onclick="submitProbe(true)">不打听了，直接看结果 →</button>
   </div>
 </div>
 
@@ -513,6 +536,11 @@ body{
       <button class="plat" onclick="openShare('sys')"><span>📲</span>更多</button>
     </div>
     <div class="share-sub mono">卡片自带二维码 · 我已离谱 <span id="share-km">?</span> · 搭子扫码就能测</div>
+  </div>
+
+  <div class="stage-ask" id="stage-ask" style="display:none">
+    <div class="stage-q">📋 档案还差最后一格：你现在是？</div>
+    <div class="dream-chips" id="stage-chips" style="justify-content:center"></div>
   </div>
 
   <div class="combo">
@@ -786,8 +814,41 @@ const JOB_CARDS = [
 ];
 const DREAM_CHIPS = ['投行/咨询','大厂产品','公务员','当博主','量化','创业','还没想好'];
 
+/* ============ 求职痛点追问（附加卷）============
+   通用池 + 按理想工作类目的专属池；专属标签保证出现，展示顺序随机。
+   线上可通过 KV(probe_chips) 热更新标签池，见 /chips 端点。 */
+const PROBE_GENERIC = ['钱给不给到位','加不加班','双休还是单休','领导是人吗','同事卷不卷','离家近不近','五险一金全不全','能不能摸鱼','有没有年终奖','厕所自由吗'];
+const PROBE_POOLS = {
+ fin:['几点能下班','周末保得住吗','带我的人靠不靠谱','出差多不多','奖金什么时候发','是不是天天画饼','熬几年能升'],
+ tech:['会不会大小周','35岁之后怎么办','裁员赔不赔N+1','能不能远程','开不开会到半夜','食堂好不好吃','技术栈老不老'],
+ gov:['是不是真编制','有没有宿舍','提拔看什么','周末会不会被叫走','食堂好不好吃','领导好不好相处'],
+ solo:['多久能赚到钱','没流量怎么办','要不要露脸','爸妈那关怎么过','会不会被平台限流','要垫多少本钱','断更算不算失败'],
+ phd:['导师是人吗','几年能毕业','补贴够不够吃饭','发不出论文怎么办','假期是真的吗','毕业了能去哪'],
+ art:['改稿改几轮','甲方讲不讲理','稿费拖多久','会不会白嫖方案','版权算谁的'],
+ edu:['寒暑假是真的吗','家长半夜发消息吗','编制还是合同工','要不要坐班','带不带晚自习'],
+ med:['夜班一个月几次','规培要几年','遇到医闹怎么办','有没有编制','能不能准点吃饭'],
+ law:['几点能下班','带教分不分钱','案源哪里来','要不要陪酒','多久能独立办案'],
+ lie:['钱从哪来','爸妈怎么交代','社保自己交多贵','会不会越躺越慌','要不要假装上班']
+};
+const PROBE_MAP = {'金融投资':'fin','咨询':'fin','量化':'fin','大厂产品':'tech','技术研发':'tech','体制内':'gov','博主':'solo','创业':'solo','学术':'phd','创意':'art','教育':'edu','医疗':'med','法律':'law','不上班':'lie'};
+/* 三种提问框架轮换，framing id 随回答一起入库，等于免费A/B */
+const PROBE_FRAMINGS = [
+ {id:'F1', t:d=>'关于「'+d+'」，你最想偷偷打听清楚的是？', h:'JD上不写的才是重点。最多选3个，这题不算分。'},
+ {id:'F2', t:d=>'哪些事没问清楚，你不敢签「'+d+'」的offer？', h:'最多选3个。这题不算分，鲸鱼拿去记档案。'},
+ {id:'F3', t:d=>'两个「'+d+'」offer工资一样，你会先比什么？', h:'最多选3个。这题不算分，纯属鲸鱼好奇。'}
+];
+const STAGES = ['在校','应届','工作中','想转行'];
+/* 匿名会话ID：只用于同一人去重，不含任何身份信息 */
+const SID = (()=>{ try{
+  let v=localStorage.getItem('jbti_sid');
+  if(!v){ v='s'+Math.random().toString(36).slice(2,12); localStorage.setItem('jbti_sid',v); }
+  return v;
+}catch(e){ return 's'+Math.random().toString(36).slice(2,12) } })();
+
 /* ============ 状态 ============ */
-const S = {qi:0, ans:[], ax:{G:0,L:0,M:0,P:0,S:0,T:0,I:0,O:0}, d:0, dream:'', card:null, persona:null, jb:0, km:''};
+const S = {qi:0, ans:[], ax:{G:0,L:0,M:0,P:0,S:0,T:0,I:0,O:0}, d:0, dream:'', card:null, persona:null, jb:0, km:'',
+  probe:{framing:'',shown:[],picked:[],custom:'',skipped:0,dur:0}, srvId:0, surveySent:false, t0:Date.now(),
+  src:(()=>{ try{ return (new URLSearchParams(location.search).get('src')||'').slice(0,12) }catch(e){ return '' } })()};
 
 /* ============ 通用 ============ */
 const $ = id => document.getElementById(id);
@@ -817,7 +878,7 @@ fillTicker('ticker-track');
 
 /* ============ 流程：题目 ============ */
 function startTest(){
-  S.qi=0; S.ans=[];
+  S.qi=0; S.ans=[]; S.t0=Date.now();
   renderQ(); show('s-question');
 }
 function renderQ(){
@@ -887,9 +948,43 @@ function matchCard(text){
 function submitDream(){
   S.dream = $('dream-input').value.trim() || '还没想好';
   S.card = matchCard(S.dream);
+  renderProbe(); show('s-probe');
+}
+
+/* ============ 流程：痛点追问 ============ */
+function shuffleArr(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]] } return a }
+function renderProbe(){
+  const fr = PROBE_FRAMINGS[Math.floor(Math.random()*PROBE_FRAMINGS.length)];
+  S.probe = {framing:fr.id, shown:[], picked:[], custom:'', skipped:0, dur:0};
+  $('probe-title').textContent = fr.t(S.dream);
+  $('probe-hint').textContent = fr.h;
+  /* 专属标签全保留，通用标签随机补足到9个，最后整体打乱防位置偏差 */
+  const key = S.card && PROBE_MAP[S.card.label];
+  const spec = key ? (PROBE_POOLS[key]||[]).slice() : [];
+  const gen = shuffleArr(PROBE_GENERIC.filter(g=>!spec.includes(g)));
+  const tags = shuffleArr(spec.concat(gen).slice(0,9));
+  S.probe.shown = tags.slice();
+  const box=$('probe-chips'); box.innerHTML='';
+  tags.forEach(t=>{
+    const s=document.createElement('span'); s.className='chip'; s.textContent=t;
+    s.onclick=()=>{
+      const i=S.probe.picked.indexOf(t);
+      if(i>=0){ S.probe.picked.splice(i,1); s.classList.remove('picked'); }
+      else if(S.probe.picked.length>=3){ toast('最多选3个，先挑最疼的'); }
+      else{ S.probe.picked.push(t); s.classList.add('picked'); }
+    };
+    box.appendChild(s);
+  });
+  $('probe-input').value='';
+}
+function submitProbe(skip){
+  if(skip){ S.probe.picked=[]; S.probe.custom=''; S.probe.skipped=1; }
+  else{ S.probe.custom = $('probe-input').value.trim().slice(0,60); S.probe.skipped=0; }
+  S.probe.dur = Math.round((Date.now()-S.t0)/1000);
   show('s-loading'); runLoading();
   compute().then(showResult);
 }
+const probeText = () => S.probe.custom || S.probe.picked.join('、');
 
 /* ============ 加载过场 ============ */
 const LOAD_LINES=[
@@ -1003,6 +1098,33 @@ function showResult(){
   setTimeout(()=>runRoast(),1500);
   setTimeout(()=>buildCard().catch(()=>{}),1800);  /* 预生成分享卡，点开即秒出 */
   initComboSelects();
+  sendSurvey(); initStage();
+}
+
+/* ============ 调研数据上报（匿名，静默失败）============ */
+function sendSurvey(){
+  if(!CONFIG.API_BASE || S.surveySent) return;
+  S.surveySent = true;
+  apiPost('/survey',{
+    sid:SID, framing:S.probe.framing, dream:S.dream, label:(S.card&&S.card.label)||'',
+    shown:S.probe.shown, picked:S.probe.picked, custom:S.probe.custom, skipped:S.probe.skipped,
+    persona:S.persona.code, jb:S.jb, src:S.src, dur:S.probe.dur
+  }).then(j=>{ S.srvId = j.id||0 }).catch(()=>{});
+}
+function updateSurvey(patch){
+  if(!CONFIG.API_BASE || !S.srvId) return;
+  apiPost('/survey', Object.assign({id:S.srvId}, patch)).catch(()=>{});
+}
+function initStage(){
+  if(!CONFIG.API_BASE) return;
+  const box=$('stage-chips'); box.innerHTML='';
+  STAGES.forEach(st=>{
+    const s=document.createElement('span'); s.className='chip'; s.textContent=st;
+    s.onclick=()=>{ updateSurvey({stage:st});
+      $('stage-ask').innerHTML='<div class="done">收到，鲸鱼记在小本本上了 🐋</div>'; };
+    box.appendChild(s);
+  });
+  $('stage-ask').style.display='';
 }
 function animateNum(el,target,dur){
   const t0=performance.now();
@@ -1094,6 +1216,7 @@ function comboTitle(jb){for(const [t,s] of COMBO_TITLE) if(jb>=t) return s; retu
 async function runCombo(){
   const m=$('sel-mbti').value, st=$('sel-star').value, out=$('combo-out');
   if(!m||!st){ out.textContent='把两个都选上，鲸鱼才肯开口。'; return; }
+  updateSurvey({mbti:m, star:st});
   out.textContent='🐋 正在深度求索三重玄学数据库…';
   let text='';
   if(CONFIG.API_BASE){ try{ text=await apiCombo(m,st) }catch(e){} }
@@ -1116,6 +1239,15 @@ async function runCombo(){
 /* ============ API 层（有代理时启用）============ */
 const API_ROOT=(CONFIG.API_BASE||'').replace(/\/+$/,'');  /* 去尾斜杠：workers 路由精确匹配 /roast，//roast 会 404 */
 const AI_STATUS={extract:'未调用',roast:'未调用',combo:'未调用'};  /* 控制台 __JBTI__.AI_STATUS 可查 */
+
+/* 启动时拉一次动态标签池：KV里没配置就用本地内置的 */
+if(API_ROOT){
+  fetch(API_ROOT+'/chips').then(r=>r.json()).then(j=>{
+    if(!j || !j.pools) return;
+    if(Array.isArray(j.pools.generic)) PROBE_GENERIC.splice(0,PROBE_GENERIC.length,...j.pools.generic.map(String));
+    for(const k in j.pools) if(k!=='generic' && Array.isArray(j.pools[k])) PROBE_POOLS[k]=j.pools[k].map(String);
+  }).catch(()=>{});
+}
 async function apiPost(path,payload){
   const r=await fetch(API_ROOT+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
   if(!r.ok){
@@ -1134,7 +1266,7 @@ async function apiExtract(dream){
 }
 async function apiRoast(){
   try{
-    const j=await apiPost('/roast',{persona:S.persona.name,code:S.persona.code,tag:S.persona.tag,letters:letters().join(''),dream:S.dream,jb:S.jb,km:S.km,card:S.card});
+    const j=await apiPost('/roast',{persona:S.persona.name,code:S.persona.code,tag:S.persona.tag,letters:letters().join(''),dream:S.dream,jb:S.jb,km:S.km,card:S.card,probe:probeText()});
     AI_STATUS.roast='DeepSeek在线 ✓';
     return j.text||'';
   }catch(e){AI_STATUS.roast='失败：'+e.message;console.warn('[JBTI] /roast 已降级本地模板：',e.message);throw e}
@@ -1249,17 +1381,20 @@ function qrMake(text){
 
 /* --- 分享状态 / 文案 --- */
 const shareState={promise:null,blob:null,url:null};
-function shareLink(){
-  if(CONFIG.SHARE_URL) return CONFIG.SHARE_URL;
-  return location.origin==='null' ? location.href : location.origin+location.pathname;
+function shareLink(src){
+  let url = CONFIG.SHARE_URL || (location.origin==='null' ? location.href : location.origin+location.pathname);
+  /* 渠道参数：新用户带着 ?src=xx 进来，调研数据就能按渠道分层 */
+  if(src && !/[?&]src=/.test(url)) url += (url.includes('?')?'&':'?')+'src='+src;
+  return url;
 }
 function shareTexts(){
-  const p=S.persona,url=shareLink();
+  const p=S.persona;
+  const u=k=>shareLink(k);
   return {
-    xhs:'测了个爆火的JBTI求职人格，我是「'+p.name+'」🤣\n'+p.tag+'\n'+JB_WORD+' '+S.jb+'%，已离谱'+S.km+'。\nJB是Job，别想歪！3分钟测出你的求职人格，评论区对答案👇\n'+url+'\n#JBTI #求职人格测试 #秋招 #校招 #求职 #MBTI #大学生 #应届生',
-    wx:'经JBTI检测，我已确诊「'+p.name+'」，'+JB_WORD+' '+S.jb+'%，离谱'+S.km+'。JB是Job，别想歪。3分钟，来对答案：'+url,
-    dy:'确诊「'+p.name+'」，'+JB_WORD+' '+S.jb+'%🤡 JB是Job别想歪，你也来测 '+url+' #JBTI #求职人格测试 #秋招 #大学生',
-    sys:'我在JBTI测出「'+p.name+'」，已离谱'+S.km+'。JB是Job，别想歪。你也来测：'+url
+    xhs:'测了个爆火的JBTI求职人格，我是「'+p.name+'」🤣\n'+p.tag+'\n'+JB_WORD+' '+S.jb+'%，已离谱'+S.km+'。\nJB是Job，别想歪！3分钟测出你的求职人格，评论区对答案👇\n'+u('xhs')+'\n#JBTI #求职人格测试 #秋招 #校招 #求职 #MBTI #大学生 #应届生',
+    wx:'经JBTI检测，我已确诊「'+p.name+'」，'+JB_WORD+' '+S.jb+'%，离谱'+S.km+'。JB是Job，别想歪。3分钟，来对答案：'+u('wx'),
+    dy:'确诊「'+p.name+'」，'+JB_WORD+' '+S.jb+'%🤡 JB是Job别想歪，你也来测 '+u('dy')+' #JBTI #求职人格测试 #秋招 #大学生',
+    sys:'我在JBTI测出「'+p.name+'」，已离谱'+S.km+'。JB是Job，别想歪。你也来测：'+u('sys')
   };
 }
 
@@ -1362,7 +1497,7 @@ async function _buildCard(){
   c.beginPath();c.moveTo(62,y);c.lineTo(W-62,y);c.stroke();c.restore();
   y+=36;
   /* 二维码 + 引导 */
-  const link=shareLink(),qr=qrMake(link),qs=190,qx=76,qy=y;
+  const link=shareLink('qr'),qr=qrMake(link),qs=190,qx=76,qy=y;
   if(qr){
     rr(qx-12,qy-12,qs+24,qs+24,14);c.fillStyle='#fff';c.fill();c.lineWidth=4;c.strokeStyle=INK;c.stroke();
     const m=qs/qr.size;c.fillStyle=INK;
