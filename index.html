@@ -260,6 +260,7 @@ body{
   transform:rotate(-4deg);opacity:0;animation:circleIn .5s ease 1.3s forwards
 }
 @keyframes circleIn{to{opacity:.9}}
+.score-explain{margin-top:6px;font-size:12px;font-weight:600;opacity:.66;line-height:1.6}
 .lipu-line{margin-top:8px;font-size:14.5px;font-weight:700}
 .lipu-line b{color:var(--red);font-size:16px}
 .ruler{margin-top:16px;position:relative;height:56px}
@@ -294,6 +295,7 @@ body{
 .axis-cell{flex:1;text-align:center;font-size:13px;font-weight:700;padding:9px 4px;border:2px dashed var(--line);border-radius:var(--wonky2);opacity:.55;background:var(--paper)}
 .axis-cell.win{border:2.5px solid var(--ink);opacity:1;background:var(--hl);font-weight:900;transform:rotate(-1deg)}
 .axis-vs{font-family:var(--mono);font-size:10px;opacity:.6}
+.axis-pct{display:block;font-size:15px;font-weight:800;font-family:var(--mono);margin-top:3px}
 
 /* 叠加 / 工具包 */
 .combo{margin-top:28px;padding:18px 16px;border:3px solid var(--blue);border-radius:var(--wonky2);background:#fff;box-shadow:5px 6px 0 rgba(47,111,228,.25);transform:rotate(-.4deg)}
@@ -517,8 +519,13 @@ body{
       <div class="rarity">同类患者占比 <b id="p-rarity">?%</b><span>·</span><span id="p-rarelabel"></span></div>
 
       <div class="verdict">
-        <div class="v-eyebrow">◉ 人格判词</div>
+        <div class="v-eyebrow">◉ 人格判词 · 你是哪种求职生物</div>
         <div id="p-desc"></div>
+      </div>
+
+      <div class="axes">
+        <div class="sym-title">◉ 四轴成分表 · 你在四个维度站哪边</div>
+        <div id="axes-list"></div>
       </div>
 
       <hr class="dashline">
@@ -528,7 +535,9 @@ body{
           <span class="score-label">JB 浓度</span>
           <span class="score-num"><span id="score-jb">0</span><small>%</small></span>
         </div>
+        <div class="score-explain" id="score-explain">JB=Job。数字越高，你的求职方案离现实越远；50%往上就算飘了。</div>
         <div class="lipu-line">换算离谱距离：<b id="score-km">0 米</b></div>
+        <div class="score-explain">📜 是谱（现实），🏃 是你。你和谱的距离，就是上面那个数。</div>
         <div class="ruler">
           <span class="ruler-km">单位：离谱公里</span>
           <div class="ruler-track"></div>
@@ -546,13 +555,8 @@ body{
       </div>
 
       <div class="sym">
-        <div class="sym-title">◉ 主要症状</div>
+        <div class="sym-title">◉ 主要症状 · 对号入座专用</div>
         <div id="sym-list"></div>
-      </div>
-
-      <div class="axes">
-        <div class="sym-title">◉ 四轴成分表</div>
-        <div id="axes-list"></div>
       </div>
     </div>
   </div>
@@ -595,22 +599,6 @@ body{
     </div>
   </div>
 
-  <div class="stage-ask" id="stage-ask" style="display:none">
-    <div class="stage-q">📋 档案还差最后一格：你现在是？</div>
-    <div class="dream-chips" id="stage-chips" style="justify-content:center"></div>
-  </div>
-
-  <div class="combo">
-    <h3>🔐 三重人格叠加解读</h3>
-    <p class="sub">输入你的 MBTI 和星座，鲸鱼会算出更炸裂的东西。</p>
-    <div class="combo-selects">
-      <select id="sel-mbti"><option value="">MBTI</option></select>
-      <select id="sel-star"><option value="">星座</option></select>
-    </div>
-    <button class="cta blue" style="font-size:16px;padding:14px 0" onclick="runCombo()">叠加，让它一次说完</button>
-    <div class="combo-out" id="combo-out"></div>
-  </div>
-
   <div class="toolkit">
     <div class="toolkit-head">
       <div class="eyebrow">测完了，然后呢</div>
@@ -632,6 +620,25 @@ body{
       <span><span class="tt">简历 ATS 雷点检测</span><br><span class="td">30 秒查出简历为什么已读不回</span></span>
       <span class="go">→</span>
     </button>
+  </div>
+
+  <div class="stage-ask" id="stage-ask" style="display:none">
+    <div class="stage-q">📋 档案还差最后一格：你现在是？</div>
+    <div class="dream-chips" id="stage-chips" style="justify-content:center"></div>
+  </div>
+
+  <div class="combo">
+    <h3>🔐 三重人格叠加解读</h3>
+    <p class="sub">输入你的 MBTI 和星座，鲸鱼会算出更炸裂的东西。</p>
+    <div class="combo-selects">
+      <select id="sel-mbti"><option value="">MBTI</option></select>
+      <select id="sel-star"><option value="">星座</option></select>
+    </div>
+    <button class="cta blue" style="font-size:16px;padding:14px 0" onclick="runCombo()">叠加，让它一次说完</button>
+    <div class="combo-out" id="combo-out"></div>
+  </div>
+
+  <div class="toolkit" style="margin-top:24px">
     <div class="cta-stack" style="margin-top:18px">
       <button class="cta ghost" onclick="restart()">↺ 再测一次（听说有隐藏人格）</button>
     </div>
@@ -704,7 +711,8 @@ const QUESTIONS = [
   {k:'B',t:'图爽。人生已经这么苦了，班还不能挑个爱上的吗',a:{P:2},d:0},
   {k:'C',t:'图热爱！（热爱目前月薪为零，但它会有的）',a:{P:2},d:2},
   {k:'D',t:'图超越同龄人。具体超到哪，等超了再说',a:{M:2},d:2}]},
- {t:'Coffee chat 在你的世界里是：',axis:'S/T',o:[
+ {t:'Coffee chat 在你的世界里是：',axis:'S/T',
+  note:'冷知识：coffee chat = 约个业内人喝咖啡打听行情，留学生求职圈的标配动作。',o:[
   {k:'A',t:'一周三杯起步，咖啡因和人脉双重成瘾',a:{S:2,G:1},d:0},
   {k:'B',t:'约过一次。全程「嗯嗯 对 是的 哈哈」，从此戒了',a:{T:2},d:0},
   {k:'C',t:'？我以为找工作只要好好做题（天真的眼神）',a:{T:1},d:1},
@@ -713,12 +721,14 @@ const QUESTIONS = [
   {k:'A',t:'「考公！」全群欢呼，妈妈连发六个大拇指',a:{I:2},d:0},
   {k:'B',t:'「要不……再读个书？」拖字诀，一拖天下无难事',a:{L:1},d:2},
   {k:'C',t:'甩出五年规划PPT，含甘特图。全群已读不回',a:{G:2,I:1},d:0},
-  {k:'D',t:'「说了你们也不懂，新兴行业。」群里陷入诡异的安静',a:{O:2},d:1}]},
+  {k:'D',t:'「说了你们也不懂，新兴行业。」群里陷入诡异的安静',a:{O:2},d:1},
+  {k:'E',t:'如实汇报：「在投了。」群里安静两秒，姑姑发来一个加油表情包',a:{},d:0}]},
  {t:'刷到「应届生年薪百万」的帖子，你：',axis:'行为',o:[
   {k:'A',t:'逐帧研究，试图从像素里破译财富密码',a:{M:2},d:2},
   {k:'B',t:'编的。都是编的。取关，眼不见为净',a:{},d:-1},
   {k:'C',t:'酸0.5秒，回去继续改我那份月薪五千的简历',a:{G:1},d:0},
-  {k:'D',t:'转发家庭群，配文：「明年的我」',a:{},d:2}]},
+  {k:'D',t:'转发家庭群，配文：「明年的我」',a:{},d:2},
+  {k:'E',t:'不酸也不追，当短视频看完就划走。人各有命',a:{},d:0}]},
  {t:'简历投出去48份，回音：0。此刻的你：',axis:'G/L',
   note:'冷知识：很多公司用ATS（机筛简历的机器人）做第一轮过滤。你可能啥都没做错，就被机器人干掉了。',o:[
   {k:'A',t:'继续投。第49份就是天命之子，我赌了',a:{G:2},d:0},
@@ -735,11 +745,12 @@ const QUESTIONS = [
   {k:'B',t:'给自己打工。替别人搬砖，不如自产自销',a:{O:2},d:1},
   {k:'C',t:'大厂工牌。挂上那一刻的朋友圈文案我都想好了',a:{I:1,M:1},d:0},
   {k:'D',t:'岸是弱者的港湾。我，选择当鱼',a:{O:2},d:1}]},
- {t:'两个offer打起来了：钱多的不爱，爱的钱砍半。',axis:'M/P',o:[
+ {t:'假设最俗的二选一真砸到你头上：钱多的不爱，爱的钱砍半。',axis:'M/P',o:[
   {k:'A',t:'拿钱。爱这个东西，下班以后有的是时间爱',a:{M:2},d:0},
   {k:'B',t:'选爱。为不爱的东西早起，是当代酷刑',a:{P:2},d:0},
   {k:'C',t:'都拒了。真命offer还在路上，我等',a:{},d:2},
-  {k:'D',t:'先拿钱多的骑驴找马。驴，不能白骑',a:{M:1,G:1},d:0}]},
+  {k:'D',t:'先拿钱多的骑驴找马。驴，不能白骑',a:{M:1,G:1},d:0},
+  {k:'E',t:'不接受设定。我要找的就是又有钱又爱的，找不到就接着找',a:{},d:1}]},
  {t:'你微信里的求职群，现状是：',axis:'S/T',o:[
   {k:'A',t:'23个，全部星标，消息追得比对象的还紧',a:{S:2},d:0},
   {k:'B',t:'加了，全员免打扰，红点已攒到四位数',a:{T:1},d:0},
@@ -754,12 +765,14 @@ const QUESTIONS = [
   {k:'A',t:'某单位·某科员。字越少，编制越硬',a:{I:2},d:0},
   {k:'B',t:'Founder。哪怕公司就我一个人和一个公众号',a:{O:2},d:1},
   {k:'C',t:'大厂title，越长越好，最好一口气读不完',a:{I:1,M:1},d:0},
-  {k:'D',t:'不要名片。作品会替我说话（作品：暂无）',a:{O:2,P:1},d:1}]},
+  {k:'D',t:'不要名片。作品会替我说话（作品：暂无）',a:{O:2,P:1},d:1},
+  {k:'E',t:'某公司·某工程师，普普通通的正经title，够用了',a:{I:1},d:0}]},
  {t:'为求职花过的最大一笔钱：',axis:'行为',o:[
   {k:'A',t:'四位数改简历。改完发现，改的是我的心态',a:{G:1,M:1},d:0},
   {k:'B',t:'一杯咖啡。coffee chat那杯，喝出过面试',a:{S:1},d:0},
   {k:'C',t:'零元。白嫖是刻在DNA里的生存智慧',a:{},d:0},
-  {k:'D',t:'没花过钱，但收藏夹里躺着48门「必买」课',a:{L:1},d:1}]},
+  {k:'D',t:'没花过钱，但收藏夹里躺着48门「必买」课',a:{L:1},d:1},
+  {k:'E',t:'报过班/考过证/找过中介，四五位数，就当买个心安',a:{M:1,G:1},d:0}]},
  {t:'十年后，你最理想的一帧画面：',axis:'M/P',o:[
   {k:'A',t:'财务自由，在家族群发红包，单个200的那种',a:{M:2},d:1},
   {k:'B',t:'干着热爱的事，穷但眼里有光（电费欠费的光）',a:{P:2},d:1},
@@ -778,8 +791,8 @@ const PERSONAS = {
   desc:'恭喜！你并非油腻，你是把「多个朋友多条路」修成八车道高速的人。你早就看透了：挚友只能陪你哭，内推往往来自只喝过一杯咖啡的点头之交。所以你把LinkedIn经营成自己的近海渔场，每杯咖啡都是撒网，每次点头都是收线。信条：一、多一个好友，多一条活路；二、mentor不嫌多，咖啡不嫌苦。',
   sym:['通讯录按"利用价值"分组，且有备注系统','LinkedIn消息回复速度比对象快','听到"内推"两个字瞳孔会放大'],
   jobs:'BD、投行IBD、猎头、咨询，只要靠嘴和腿吃饭的岗位都对味'},
- GMSO:{name:'风口韭菜',tag:'每个风口都割过我，但我永远相信下一个。',rar:5.8,base:[45,75],emoji:'🌪️',
-  desc:'恭喜！你并非韭菜，你是全网最有信念感的追风少年。元宇宙你冲过，Web3你冲过，AI你正在冲。别人被割一次就学乖，你被割八次还能热泪盈眶地喊「这次不一样」。你不是傻，你是太虔诚：风口天天有，万一下一个真的带你飞呢。信条：一、下一个风口一定有我；二、这次真的不一样（此话第五次生效中）。',
+ GMSO:{name:'追风少年',tag:'每个风口都割过我，但我永远相信下一个。',rar:5.8,base:[45,75],emoji:'🌪️',
+  desc:'恭喜！你并非韭菜，你是风口的荣誉常驻嘉宾。元宇宙你冲过，Web3你冲过，AI你正在冲。别人被割一次就学乖，你被割八次还能热泪盈眶地喊「这次不一样」。你不是傻，你是太虔诚：风口天天有，万一下一个真的带你飞呢。信条：一、下一个风口一定有我；二、这次真的不一样（此话第五次生效中）。',
   sym:['简历技能栏跟着热搜实时更新','Web3的亏还没回本，已经all in AI','"这次不一样"说过不止四次'],
   jobs:'增长黑客、新赛道BD、创业公司万金油，风越大你越来劲'},
  GMTI:{name:'GPA貔貅',tag:'4.0，只进不出。',rar:6.5,base:[25,50],emoji:'🐉',
@@ -1300,6 +1313,7 @@ function showResult(){
   $('p-desc').textContent=p.desc;
   $('p-rarelabel').textContent=p.hidden?'隐藏人格，恭喜（吗）':(p.rar<4?'稀有患者':'常见病，别慌');
   document.querySelector('.score-block .score-label').textContent=JB_WORD;
+  $('score-explain').textContent=(CONFIG.REVIEW_MODE?'':'JB=Job。')+'数字越高，你的求职方案离现实越远；50%往上就算飘了。';
   $('sym-list').innerHTML=p.sym.map(s=>'<div class="sym-item"><span class="dot">▸</span><span>'+s+'</span></div>').join('');
   renderAxes();
   $('toolkit-lead').textContent = p.code==='X_DIM'
@@ -1353,13 +1367,16 @@ function animateNum(el,target,dur){
 }
 function renderAxes(){
   const L=letters(), names=[['卷王 G','躺子 L'],['搞钱 M','为爱 P'],['社牛 S','单机 T'],['编制脑 I','野路子 O']];
+  const pairs=[['G','L'],['M','P'],['S','T'],['I','O']];
   const p=S.persona;
   $('axes-list').innerHTML = names.map((pair,i)=>{
+    const a=S.ax[pairs[i][0]], b=S.ax[pairs[i][1]], t=a+b;
+    const pa=t?Math.round(a/t*100):50, pb=100-pa;   /* 倾向强度：实测里最受欢迎的板块，给足信息量 */
     const win = p.hidden ? -1 : ('GMSI'[i]===L[i]?0:1);
     return '<div class="axis-row">'+
-      '<div class="axis-cell'+(win===0?' win':'')+'">'+pair[0]+'</div>'+
+      '<div class="axis-cell'+(win===0?' win':'')+'">'+pair[0]+'<span class="axis-pct">'+pa+'%</span></div>'+
       '<span class="axis-vs">VS</span>'+
-      '<div class="axis-cell'+(win===1?' win':'')+'">'+pair[1]+'</div></div>';
+      '<div class="axis-cell'+(win===1?' win':'')+'">'+pair[1]+'<span class="axis-pct">'+pb+'%</span></div></div>';
   }).join('');
 }
 
@@ -1469,8 +1486,16 @@ if(API_ROOT){
     for(const k in j.pools) if(k!=='generic' && Array.isArray(j.pools[k])) PROBE_POOLS[k]=j.pools[k].map(String);
   }).catch(()=>{});
 }
-async function apiPost(path,payload){
-  const r=await fetch(API_ROOT+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+async function apiPost(path,payload,timeoutMs){
+  /* 实测bug：DeepSeek偶发极慢会把整页挂起，本地兜底永远等不到。全部请求带超时。 */
+  const ctl=new AbortController();
+  const tid=setTimeout(()=>ctl.abort(),timeoutMs||12000);
+  let r;
+  try{
+    r=await fetch(API_ROOT+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:ctl.signal});
+  }catch(e){
+    throw new Error(ctl.signal.aborted?'timeout':String(e&&e.message||e));
+  }finally{ clearTimeout(tid) }
   if(!r.ok){
     let detail='';try{detail=(await r.json()).detail||''}catch(_){}
     throw new Error('HTTP '+r.status+(detail?' · '+detail:''));
@@ -1479,7 +1504,7 @@ async function apiPost(path,payload){
 }
 async function apiExtract(dream){
   try{
-    const j=await apiPost('/extract',{dream});
+    const j=await apiPost('/extract',{dream},7000);   /* 卡在出结果的关键路径上，超时给短些 */
     if(!j.pro) throw new Error('unknown job');   /* unknown → 抛出，走默认卡，避免 NaN 分数 */
     AI_STATUS.extract='DeepSeek在线 ✓';
     return {label:dream,pro:j.pro,w:j.w,hard:j.hard,crowd:j.crowd,clear:j.clear};
